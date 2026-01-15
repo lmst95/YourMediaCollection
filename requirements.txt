@@ -1,0 +1,40 @@
+# Django Core
+Django==5.0.1
+djangorestframework==3.14.0
+djangorestframework-simplejwt==5.3.1
+
+# Database
+psycopg2-binary==2.9.9
+neo4j==5.16.0
+
+# Task Queue
+celery==5.3.6
+redis==5.0.1
+
+# API & Documentation
+drf-spectacular==0.27.1
+django-cors-headers==4.3.1
+django-filter==23.5
+
+# Environment & Config
+python-decouple==3.8
+python-dotenv==1.0.0
+
+# External APIs
+requests==2.31.0
+
+# Utilities
+Pillow==10.2.0
+python-slugify==8.0.1
+
+# Development
+pytest==7.4.4
+pytest-django==4.7.0
+pytest-cov==4.1.0
+black==24.1.1
+flake8==7.0.0
+ipython==8.20.0
+
+# Production
+gunicorn==21.2.0
+whitenoise==6.6.0
