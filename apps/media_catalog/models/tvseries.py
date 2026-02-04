@@ -14,16 +14,8 @@ class TVSeriesStatus(models.TextChoices):
     CANCELLED = 'cancelled', _('Cancelled')
 
 
-class TVSeries(models.Model):
+class TVSeries(Media):
     """TV Series-specific fields extending the base Media model."""
-
-    media_ptr = models.OneToOneField(
-        Media,
-        on_delete=models.CASCADE,
-        parent_link=True,
-        primary_key=True,
-        related_name='tvseries'
-    )
 
     number_of_seasons = models.PositiveIntegerField(
         _('number of seasons'),
@@ -57,4 +49,4 @@ class TVSeries(models.Model):
         verbose_name_plural = _('TV series')
 
     def __str__(self):
-        return self.media_ptr.title
+        return self.title

@@ -37,54 +37,57 @@ class MediaAdmin(admin.ModelAdmin):
 class MovieAdmin(admin.ModelAdmin):
     """Admin interface for Movie model."""
 
-    list_display = ['media_ptr', 'director', 'runtime_minutes', 'tmdb_id']
-    search_fields = ['media_ptr__title', 'director']
-    readonly_fields = ['media_ptr']
+    list_display = ['title', 'director', 'runtime_minutes', 'tmdb_id', 'release_date']
+    list_filter = ['release_date']
+    search_fields = ['title', 'director']
+    readonly_fields = ['id', 'created_at', 'updated_at']
 
 
 @admin.register(TVSeries)
 class TVSeriesAdmin(admin.ModelAdmin):
     """Admin interface for TV Series model."""
 
-    list_display = ['media_ptr', 'number_of_seasons', 'number_of_episodes', 'status']
-    list_filter = ['status']
-    search_fields = ['media_ptr__title']
-    readonly_fields = ['media_ptr']
+    list_display = ['title', 'number_of_seasons', 'number_of_episodes', 'status', 'release_date']
+    list_filter = ['status', 'release_date']
+    search_fields = ['title']
+    readonly_fields = ['id', 'created_at', 'updated_at']
 
 
 @admin.register(Book)
 class BookAdmin(admin.ModelAdmin):
     """Admin interface for Book model."""
 
-    list_display = ['media_ptr', 'isbn', 'publisher', 'page_count']
-    search_fields = ['media_ptr__title', 'isbn', 'publisher']
-    readonly_fields = ['media_ptr']
+    list_display = ['title', 'isbn', 'publisher', 'page_count', 'release_date']
+    list_filter = ['release_date', 'language']
+    search_fields = ['title', 'isbn', 'publisher']
+    readonly_fields = ['id', 'created_at', 'updated_at']
 
 
 @admin.register(Music)
 class MusicAdmin(admin.ModelAdmin):
     """Admin interface for Music model."""
 
-    list_display = ['media_ptr', 'album_type', 'track_count', 'label']
-    list_filter = ['album_type']
-    search_fields = ['media_ptr__title', 'label']
-    readonly_fields = ['media_ptr']
+    list_display = ['title', 'album_type', 'track_count', 'label', 'release_date']
+    list_filter = ['album_type', 'release_date']
+    search_fields = ['title', 'label']
+    readonly_fields = ['id', 'created_at', 'updated_at']
 
 
 @admin.register(Concert)
 class ConcertAdmin(admin.ModelAdmin):
     """Admin interface for Concert model."""
 
-    list_display = ['media_ptr', 'artist', 'venue', 'location', 'event_date']
-    search_fields = ['media_ptr__title', 'artist', 'venue']
-    readonly_fields = ['media_ptr']
+    list_display = ['title', 'artist', 'venue', 'location', 'event_date']
+    list_filter = ['event_date']
+    search_fields = ['title', 'artist', 'venue']
+    readonly_fields = ['id', 'created_at', 'updated_at']
 
 
 @admin.register(Document)
 class DocumentAdmin(admin.ModelAdmin):
     """Admin interface for Document model."""
 
-    list_display = ['media_ptr', 'document_type', 'author']
-    list_filter = ['document_type']
-    search_fields = ['media_ptr__title', 'author']
-    readonly_fields = ['media_ptr']
+    list_display = ['title', 'document_type', 'author', 'release_date']
+    list_filter = ['document_type', 'release_date']
+    search_fields = ['title', 'author']
+    readonly_fields = ['id', 'created_at', 'updated_at']

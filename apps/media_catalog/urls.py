@@ -13,6 +13,7 @@ urlpatterns = [
     path('<uuid:pk>/', views.MediaDetailView.as_view(), name='media-detail'),
     path('create/', views.MediaCreateView.as_view(), name='media-create'),
     path('genres/', views.GenreListView.as_view(), name='genre-list'),
+    path('timeline/', views.MediaTimelineView.as_view(), name='media-timeline'),
 
     # Type-specific lists
     path('movies/', views.MovieListView.as_view(), name='movie-list'),

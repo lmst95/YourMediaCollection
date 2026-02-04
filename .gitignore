@@ -4,6 +4,8 @@ __pycache__/
 *$py.class
 *.so
 .Python
+.mypy_cache/
+.ruff_cache/
 env/
 venv/
 ENV/
@@ -25,16 +27,19 @@ wheels/
 
 # Django
 *.log
+*.pot
+*.mo
 local_settings.py
 db.sqlite3
 db.sqlite3-journal
 /media
 /staticfiles
 /static
+/collected_static/
 
 # Environment
 .env
-.env.local
+.env.*
 
 # IDEs
 .vscode/
@@ -43,13 +48,15 @@ db.sqlite3-journal
 *.swo
 *~
 .DS_Store
+Thumbs.db
 
 # Testing
-.claude/
 .pytest_cache/
 .coverage
+coverage.xml
 htmlcov/
 .tox/
+.nox/
 
 # Docker
 docker-compose.override.yml

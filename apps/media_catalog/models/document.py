@@ -7,16 +7,8 @@ from django.utils.translation import gettext_lazy as _
 from .base import Media
 
 
-class Document(models.Model):
+class Document(Media):
     """Document-specific fields for user-created document entries."""
-
-    media_ptr = models.OneToOneField(
-        Media,
-        on_delete=models.CASCADE,
-        parent_link=True,
-        primary_key=True,
-        related_name='document'
-    )
 
     document_type = models.CharField(
         _('document type'),
@@ -38,4 +30,4 @@ class Document(models.Model):
         verbose_name_plural = _('documents')
 
     def __str__(self):
-        return self.media_ptr.title
+        return self.title

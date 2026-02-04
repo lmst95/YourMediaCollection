@@ -1,35 +1,22 @@
 """
-Signals for UserMedia model to sync with Neo4j.
-This handles the PostgreSQL → Neo4j sync strategy.
+Signals for UserMediaCollection model to sync with Neo4j.
+UPDATED for new collection model structure.
 """
 
 import logging
 from django.db.models.signals import post_save, post_delete
 from django.dispatch import receiver
-from .models import UserMedia, CollectionStatus
+from .models import UserMediaCollection, LendingRecord
 from core.services import Neo4jService
 
 logger = logging.getLogger(__name__)
 
 
-# Mapping of Django model status to Neo4j relationship types
-STATUS_TO_RELATIONSHIP = {
-    CollectionStatus.OWNED: 'OWNS',
-    CollectionStatus.WATCHED: 'WATCHED',
-    CollectionStatus.READ: 'WATCHED',  # Use WATCHED for read items
-    CollectionStatus.LISTENED: 'WATCHED',  # Use WATCHED for listened items
-    CollectionStatus.WISHLIST: 'WISHES',
-    CollectionStatus.IN_PROGRESS: 'IN_PROGRESS',
-    CollectionStatus.BORROWED: 'BORROWED',
-    CollectionStatus.LENT: 'LENT',
-}
-
-
-@receiver(post_save, sender=UserMedia)
-def sync_usermedia_to_neo4j(sender, instance, created, **kwargs):
+@receiver(post_save, sender=UserMediaCollection)
+def sync_collection_to_neo4j(sender, instance, created, **kwargs):
     """
-    Sync UserMedia to Neo4j when created or updated.
-    Creates relationship between User and Media nodes.
+    Sync UserMediaCollection to Neo4j when created or updated.
+    Creates multiple relationships based on active flags.
     """
     try:
         neo4j = Neo4jService()
@@ -49,45 +36,113 @@ def sync_usermedia_to_neo4j(sender, instance, created, **kwargs):
             for genre in instance.media.genres:
                 neo4j.create_genre_relationship(str(instance.media.id), genre)
 
-        # Create collection relationship
-        relationship_type = STATUS_TO_RELATIONSHIP.get(instance.status, 'OWNS')
+        # Common properties for all relationships
         properties = {
             'added_at': instance.added_at.isoformat() if instance.added_at else None,
             'rating': float(instance.rating) if instance.rating else None,
             'notes': instance.notes or '',
-            'completed_at': instance.completed_at.isoformat() if instance.completed_at else None,
+            'watched_at': instance.watched_at.isoformat() if instance.watched_at else None,
         }
 
-        neo4j.create_collection_relationship(
-            user_id=str(instance.user.id),
-            media_id=str(instance.media.id),
-            relationship_type=relationship_type,
-            **properties
-        )
+        # Create relationships based on active flags
+        user_id = str(instance.user.id)
+        media_id = str(instance.media.id)
+
+        if instance.is_owned:
+            neo4j.create_collection_relationship(
+                user_id=user_id,
+                media_id=media_id,
+                relationship_type='OWNS',
+                **properties
+            )
+
+        if instance.is_wishlist:
+            neo4j.create_collection_relationship(
+                user_id=user_id,
+                media_id=media_id,
+                relationship_type='WISHES',
+                **properties
+            )
+
+        if instance.is_watched:
+            neo4j.create_collection_relationship(
+                user_id=user_id,
+                media_id=media_id,
+                relationship_type='WATCHED',
+                **properties
+            )
+
+        if instance.is_in_progress:
+            neo4j.create_collection_relationship(
+                user_id=user_id,
+                media_id=media_id,
+                relationship_type='IN_PROGRESS',
+                **properties
+            )
 
         neo4j.close()
-        logger.info(f"Synced UserMedia to Neo4j: {instance.user.username} -> {instance.media.title}")
+        logger.info(f"Synced collection to Neo4j: {instance.user.username} -> {instance.media.title}")
     except Exception as e:
-        logger.error(f"Failed to sync UserMedia to Neo4j: {e}")
+        logger.error(f"Failed to sync collection to Neo4j: {e}")
 
 
-@receiver(post_delete, sender=UserMedia)
-def delete_usermedia_from_neo4j(sender, instance, **kwargs):
+@receiver(post_delete, sender=UserMediaCollection)
+def delete_collection_from_neo4j(sender, instance, **kwargs):
     """
-    Delete UserMedia relationship from Neo4j when collection item is deleted.
+    Delete all UserMediaCollection relationships from Neo4j when collection item is deleted.
     """
     try:
         neo4j = Neo4jService()
         neo4j.connect()
 
-        relationship_type = STATUS_TO_RELATIONSHIP.get(instance.status, 'OWNS')
-        neo4j.delete_collection_relationship(
-            user_id=str(instance.user.id),
-            media_id=str(instance.media.id),
-            relationship_type=relationship_type
+        user_id = str(instance.user.id)
+        media_id = str(instance.media.id)
+
+        # Delete all relationship types
+        for rel_type in ['OWNS', 'WISHES', 'WATCHED', 'IN_PROGRESS']:
+            try:
+                neo4j.delete_collection_relationship(
+                    user_id=user_id,
+                    media_id=media_id,
+                    relationship_type=rel_type
+                )
+            except Exception as e:
+                logger.debug(f"No {rel_type} relationship to delete: {e}")
+
+        neo4j.close()
+        logger.info(f"Deleted collection from Neo4j: {instance.user.username} -> {instance.media.title}")
+    except Exception as e:
+        logger.error(f"Failed to delete collection from Neo4j: {e}")
+
+
+@receiver(post_save, sender=LendingRecord)
+def sync_lending_to_neo4j(sender, instance, created, **kwargs):
+    """
+    Sync lending record to Neo4j.
+    Creates LENT or BORROWED relationships.
+    """
+    try:
+        neo4j = Neo4jService()
+        neo4j.connect()
+
+        properties = {
+            'person_name': instance.person_name,
+            'lent_at': instance.lent_at.isoformat() if instance.lent_at else None,
+            'returned_at': instance.returned_at.isoformat() if instance.returned_at else None,
+            'is_returned': instance.is_returned,
+            'notes': instance.notes or '',
+        }
+
+        rel_type = 'LENT' if instance.lending_type == 'lent' else 'BORROWED'
+
+        neo4j.create_collection_relationship(
+            user_id=str(instance.collection_item.user.id),
+            media_id=str(instance.collection_item.media.id),
+            relationship_type=rel_type,
+            **properties
         )
 
         neo4j.close()
-        logger.info(f"Deleted UserMedia from Neo4j: {instance.user.username} -> {instance.media.title}")
+        logger.info(f"Synced lending record to Neo4j: {rel_type}")
     except Exception as e:
-        logger.error(f"Failed to delete UserMedia from Neo4j: {e}")
+        logger.error(f"Failed to sync lending record to Neo4j: {e}")

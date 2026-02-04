@@ -15,16 +15,8 @@ class MusicAlbumType(models.TextChoices):
     EP = 'ep', _('EP')
 
 
-class Music(models.Model):
+class Music(Media):
     """Music-specific fields extending the base Media model."""
-
-    media_ptr = models.OneToOneField(
-        Media,
-        on_delete=models.CASCADE,
-        parent_link=True,
-        primary_key=True,
-        related_name='music'
-    )
 
     artists = models.JSONField(
         _('artists'),
@@ -64,4 +56,4 @@ class Music(models.Model):
         verbose_name_plural = _('music')
 
     def __str__(self):
-        return self.media_ptr.title
+        return self.title

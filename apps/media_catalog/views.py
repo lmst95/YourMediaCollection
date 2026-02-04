@@ -183,6 +183,7 @@ class MusicListView(generics.ListAPIView):
         summary="Get available genres",
         description="Get a list of all unique genres across all media types.",
         tags=["Media"],
+        responses={200: {'type': 'object', 'properties': {'genres': {'type': 'array', 'items': {'type': 'string'}}}}},
     )
 )
 class GenreListView(generics.GenericAPIView):
@@ -209,3 +210,85 @@ class GenreListView(generics.GenericAPIView):
         return Response({
             'genres': sorted(list(genres))
         })
+
+
+@extend_schema(
+    summary="Media release timeline",
+    description="Get media items organized by release date, with advanced filtering by creator/contributor.",
+    tags=["Media"],
+    parameters=[
+        OpenApiParameter(
+            name='media_type',
+            description='Filter by media type',
+            required=False,
+            type=str
+        ),
+        OpenApiParameter(
+            name='author',
+            description='Filter books by author',
+            required=False,
+            type=str
+        ),
+        OpenApiParameter(
+            name='artist',
+            description='Filter music by artist',
+            required=False,
+            type=str
+        ),
+        OpenApiParameter(
+            name='director',
+            description='Filter movies by director',
+            required=False,
+            type=str
+        ),
+        OpenApiParameter(
+            name='actor',
+            description='Filter by actor/cast',
+            required=False,
+            type=str
+        ),
+        OpenApiParameter(
+            name='creator',
+            description='Filter TV series by creator',
+            required=False,
+            type=str
+        ),
+        OpenApiParameter(
+            name='contributor',
+            description='Search across all creators',
+            required=False,
+            type=str
+        ),
+        OpenApiParameter(
+            name='release_year_min',
+            description='Minimum release year',
+            required=False,
+            type=int
+        ),
+        OpenApiParameter(
+            name='release_year_max',
+            description='Maximum release year',
+            required=False,
+            type=int
+        ),
+    ]
+)
+class MediaTimelineView(generics.ListAPIView):
+    """
+    Media release timeline with advanced filtering.
+    GET /api/media/timeline/
+    """
+    serializer_class = MediaListSerializer
+    permission_classes = [AllowAny]
+    filter_backends = [DjangoFilterBackend, filters.OrderingFilter]
+    filterset_class = MediaFilter
+    ordering_fields = ['release_date', 'title']
+    ordering = ['-release_date']  # Most recent first
+
+    def get_queryset(self):
+        """Return media ordered by release date."""
+        return Media.objects.filter(
+            is_public=True
+        ).exclude(
+            release_date__isnull=True
+        ).select_related('book', 'movie', 'music', 'tvseries')

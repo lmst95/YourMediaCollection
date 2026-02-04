@@ -7,16 +7,8 @@ from django.utils.translation import gettext_lazy as _
 from .base import Media
 
 
-class Movie(models.Model):
+class Movie(Media):
     """Movie-specific fields extending the base Media model."""
-
-    media_ptr = models.OneToOneField(
-        Media,
-        on_delete=models.CASCADE,
-        parent_link=True,
-        primary_key=True,
-        related_name='movie'
-    )
 
     runtime_minutes = models.PositiveIntegerField(
         _('runtime (minutes)'),
@@ -41,4 +33,4 @@ class Movie(models.Model):
         verbose_name_plural = _('movies')
 
     def __str__(self):
-        return self.media_ptr.title
+        return self.title

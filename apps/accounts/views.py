@@ -77,6 +77,8 @@ class CurrentUserView(generics.RetrieveUpdateAPIView):
         summary="Change password",
         description="Change the authenticated user's password.",
         tags=["Users"],
+        request=PasswordChangeSerializer,
+        responses={200: {'type': 'object', 'properties': {'message': {'type': 'string'}}}},
     )
 )
 class PasswordChangeView(APIView):

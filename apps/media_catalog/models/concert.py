@@ -7,16 +7,8 @@ from django.utils.translation import gettext_lazy as _
 from .base import Media
 
 
-class Concert(models.Model):
+class Concert(Media):
     """Concert-specific fields for user-created concert entries."""
-
-    media_ptr = models.OneToOneField(
-        Media,
-        on_delete=models.CASCADE,
-        parent_link=True,
-        primary_key=True,
-        related_name='concert'
-    )
 
     artist = models.CharField(_('artist'), max_length=200)
     venue = models.CharField(_('venue'), max_length=200, blank=True)
@@ -34,4 +26,4 @@ class Concert(models.Model):
         verbose_name_plural = _('concerts')
 
     def __str__(self):
-        return self.media_ptr.title
+        return self.title

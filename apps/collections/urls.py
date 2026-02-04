@@ -16,4 +16,8 @@ urlpatterns = [
     # Statistics & Timeline
     path('stats/', views.CollectionStatsView.as_view(), name='collection-stats'),
     path('timeline/', views.CollectionTimelineView.as_view(), name='collection-timeline'),
+
+    # Lending Records
+    path('<uuid:collection_id>/lending/', views.LendingRecordListView.as_view(), name='lending-list'),
+    path('lending/<uuid:pk>/', views.LendingRecordDetailView.as_view(), name='lending-detail'),
 ]
