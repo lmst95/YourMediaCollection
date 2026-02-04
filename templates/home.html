@@ -1,0 +1,160 @@
+{% extends 'base.html' %}
+
+{% block title %}Dashboard - Your Media Collection{% endblock %}
+
+{% block content %}
+<div class="dashboard">
+    <!-- Hero Section -->
+    <div class="dashboard-hero">
+        <h1>{{ greeting }}{% if user.is_authenticated %}, {{ user.username }}{% endif %}!</h1>
+        <p>Willkommen bei deiner persönlichen Mediensammlung</p>
+
+        {% if user.is_authenticated %}
+        <div class="quick-actions">
+            <a href="{% url 'books:search_import' %}" class="quick-action">
+                <span class="action-icon">📚</span>
+                <span>Buch importieren</span>
+            </a>
+            <a href="{% url 'documents:create' %}" class="quick-action">
+                <span class="action-icon">📄</span>
+                <span>Dokument hochladen</span>
+            </a>
+            <a href="{% url 'todos:create' %}" class="quick-action">
+                <span class="action-icon">✅</span>
+                <span>Aufgabe erstellen</span>
+            </a>
+            <a href="{% url 'collections:create' %}" class="quick-action">
+                <span class="action-icon">📁</span>
+                <span>Sammlung erstellen</span>
+            </a>
+        </div>
+        {% else %}
+        <div class="quick-actions">
+            <a href="{% url 'login' %}" class="quick-action">
+                <span class="action-icon">🔐</span>
+                <span>Anmelden</span>
+            </a>
+            <a href="{% url 'books:list' %}" class="quick-action">
+                <span class="action-icon">📚</span>
+                <span>Bücher entdecken</span>
+            </a>
+        </div>
+        {% endif %}
+    </div>
+
+    {% if user.is_authenticated %}
+    <!-- Stats Grid -->
+    <div class="stats-grid">
+        <a href="{% url 'books:list' %}" class="stat-card gradient-1" style="text-decoration: none;">
+            <span class="stat-icon">📚</span>
+            <h3 data-count="{{ book_count }}">{{ book_count }}</h3>
+            <p>Bücher</p>
+        </a>
+        <a href="{% url 'documents:list' %}" class="stat-card gradient-2" style="text-decoration: none;">
+            <span class="stat-icon">📄</span>
+            <h3 data-count="{{ document_count }}">{{ document_count }}</h3>
+            <p>Dokumente</p>
+        </a>
+        <a href="{% url 'todos:list' %}" class="stat-card gradient-3" style="text-decoration: none;">
+            <span class="stat-icon">✅</span>
+            <h3 data-count="{{ todo_count }}">{{ todo_count }}</h3>
+            <p>Offene Aufgaben</p>
+        </a>
+        <a href="{% url 'collections:list' %}" class="stat-card gradient-4" style="text-decoration: none;">
+            <span class="stat-icon">📁</span>
+            <h3 data-count="{{ collection_count }}">{{ collection_count }}</h3>
+            <p>Sammlungen</p>
+        </a>
+    </div>
+
+    <!-- Content Widgets -->
+    <div class="grid grid-2">
+        <!-- Recent Books -->
+        <div class="widget-section">
+            <h2>📚 Neueste Bücher</h2>
+            {% if recent_books %}
+            <div class="activity-feed">
+                {% for book in recent_books %}
+                <a href="{% url 'books:detail' book.pk %}" class="activity-item" style="text-decoration: none;">
+                    <div class="activity-icon book">📖</div>
+                    <div class="activity-content">
+                        <p><strong>{{ book.title|truncatechars:40 }}</strong></p>
+                        <small>{{ book.authors|join:", "|truncatechars:30|default:"Unbekannter Autor" }}</small>
+                    </div>
+                </a>
+                {% endfor %}
+            </div>
+            <div style="margin-top: 16px; text-align: center;">
+                <a href="{% url 'books:list' %}" class="btn btn-outline btn-sm">Alle Bücher ansehen</a>
+            </div>
+            {% else %}
+            <div class="empty-state" style="padding: 32px;">
+                <div class="empty-icon">📚</div>
+                <p>Noch keine Bücher vorhanden</p>
+                <a href="{% url 'books:search_import' %}" class="btn btn-sm">Erstes Buch importieren</a>
+            </div>
+            {% endif %}
+        </div>
+
+        <!-- Active Todos -->
+        <div class="widget-section">
+            <h2>✅ Aktive Aufgaben</h2>
+            {% if recent_todos %}
+            <div class="activity-feed">
+                {% for todo in recent_todos %}
+                <a href="{% url 'todos:detail' todo.pk %}" class="activity-item" style="text-decoration: none;">
+                    <div class="activity-icon todo">📋</div>
+                    <div class="activity-content">
+                        <p><strong>{{ todo.title|truncatechars:40 }}</strong></p>
+                        <small>
+                            <span class="status status-{{ todo.status|lower }}">{{ todo.get_status_display }}</span>
+                            {% if todo.due_date %} &bull; Fällig: {{ todo.due_date|date:"d.m.Y" }}{% endif %}
+                        </small>
+                    </div>
+                </a>
+                {% endfor %}
+            </div>
+            <div style="margin-top: 16px; text-align: center;">
+                <a href="{% url 'todos:list' %}" class="btn btn-outline btn-sm">Alle Aufgaben ansehen</a>
+            </div>
+            {% else %}
+            <div class="empty-state" style="padding: 32px;">
+                <div class="empty-icon">✅</div>
+                <p>Keine aktiven Aufgaben</p>
+                <a href="{% url 'todos:create' %}" class="btn btn-sm">Erste Aufgabe erstellen</a>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+
+    {% else %}
+    <!-- Not authenticated - Welcome content -->
+    <div class="widget-section">
+        <h2>Über Your Media Collection</h2>
+        <p style="color: var(--color-text-muted); line-height: 1.8; margin-bottom: 24px;">
+            Verwalte deine Bücher, Dokumente und Sammlungen an einem Ort.
+            Importiere Bücher direkt aus der Deutschen Nationalbibliothek,
+            erstelle eigene Sammlungen und behalte den Überblick über deine Medien.
+        </p>
+
+        <div class="grid grid-3" style="gap: 16px;">
+            <div class="card" style="text-align: center;">
+                <div style="font-size: 3rem; margin-bottom: 12px;">📚</div>
+                <h3>Bücher</h3>
+                <p style="color: var(--color-text-muted); font-size: 0.9rem;">Importiere Bücher aus der DNB und bewerte sie</p>
+            </div>
+            <div class="card" style="text-align: center;">
+                <div style="font-size: 3rem; margin-bottom: 12px;">📄</div>
+                <h3>Dokumente</h3>
+                <p style="color: var(--color-text-muted); font-size: 0.9rem;">Lade PDFs, eBooks und andere Dokumente hoch</p>
+            </div>
+            <div class="card" style="text-align: center;">
+                <div style="font-size: 3rem; margin-bottom: 12px;">📁</div>
+                <h3>Sammlungen</h3>
+                <p style="color: var(--color-text-muted); font-size: 0.9rem;">Organisiere deine Medien in Sammlungen</p>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}

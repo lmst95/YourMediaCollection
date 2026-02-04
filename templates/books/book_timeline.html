@@ -1,0 +1,686 @@
+{% extends 'base.html' %}
+
+{% block title %}Lese-Universum - Timeline{% endblock %}
+
+{% block extra_css %}
+<style>
+.galaxy-timeline {
+    min-height: 100vh;
+    background: #0a0e27;
+    background-image:
+        radial-gradient(ellipse at 10% 20%, rgba(102, 126, 234, 0.15) 0%, transparent 50%),
+        radial-gradient(ellipse at 80% 70%, rgba(245, 87, 108, 0.1) 0%, transparent 50%),
+        radial-gradient(ellipse at 50% 50%, rgba(79, 172, 254, 0.08) 0%, transparent 50%);
+    position: relative;
+    overflow: hidden;
+    margin: -24px;
+    padding: 24px;
+}
+
+/* Animated stars background */
+.stars {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    pointer-events: none;
+}
+
+.star {
+    position: absolute;
+    width: 2px;
+    height: 2px;
+    background: white;
+    border-radius: 50%;
+    animation: twinkle 3s infinite;
+}
+
+@keyframes twinkle {
+    0%, 100% { opacity: 0.3; }
+    50% { opacity: 1; }
+}
+
+/* Header */
+.galaxy-header {
+    text-align: center;
+    padding: 40px 20px;
+    position: relative;
+    z-index: 10;
+}
+
+.galaxy-header h1 {
+    font-size: 3rem;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 50%, #f5576c 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    margin-bottom: 16px;
+    text-shadow: 0 0 40px rgba(102, 126, 234, 0.5);
+}
+
+.galaxy-subtitle {
+    color: rgba(255, 255, 255, 0.7);
+    font-size: 1.125rem;
+    margin-bottom: 32px;
+}
+
+/* Controls */
+.galaxy-controls {
+    display: flex;
+    gap: 12px;
+    justify-content: center;
+    flex-wrap: wrap;
+    margin-bottom: 40px;
+    position: relative;
+    z-index: 10;
+}
+
+.control-btn {
+    padding: 10px 20px;
+    background: rgba(255, 255, 255, 0.1);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    color: white;
+    border-radius: 24px;
+    cursor: pointer;
+    transition: all 0.3s;
+    backdrop-filter: blur(10px);
+    font-size: 0.875rem;
+    font-weight: 500;
+}
+
+.control-btn:hover {
+    background: rgba(102, 126, 234, 0.3);
+    border-color: rgba(102, 126, 234, 0.5);
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3);
+}
+
+.control-btn.active {
+    background: var(--gradient-primary);
+    border-color: transparent;
+}
+
+/* Search input */
+.search-input {
+    padding: 10px 20px;
+    background: rgba(255, 255, 255, 0.1);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    color: white;
+    border-radius: 24px;
+    backdrop-filter: blur(10px);
+    min-width: 200px;
+}
+
+.search-input::placeholder {
+    color: rgba(255, 255, 255, 0.5);
+}
+
+.search-input:focus {
+    outline: none;
+    border-color: rgba(102, 126, 234, 0.5);
+    background: rgba(255, 255, 255, 0.15);
+}
+
+/* Universe Container */
+.universe-container {
+    position: relative;
+    width: 100%;
+    height: 80vh;
+    min-height: 600px;
+    margin: 0 auto;
+    overflow: hidden;
+    border-radius: 24px;
+    background: rgba(0, 0, 0, 0.3);
+    box-shadow: inset 0 0 100px rgba(0, 0, 0, 0.5);
+}
+
+.universe-canvas {
+    position: relative;
+    width: 100%;
+    height: 100%;
+    transform-origin: center center;
+    transition: transform 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* Constellation SVG */
+.constellation-svg {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    pointer-events: none;
+}
+
+.constellation-line {
+    stroke: rgba(102, 126, 234, 0.4);
+    stroke-width: 1.5;
+    fill: none;
+    stroke-dasharray: 1000;
+    stroke-dashoffset: 1000;
+    animation: drawLine 2s ease-out forwards;
+}
+
+@keyframes drawLine {
+    to { stroke-dashoffset: 0; }
+}
+
+/* Book Star/Planet */
+.book-star {
+    position: absolute;
+    cursor: pointer;
+    transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+    animation: starAppear 1s ease-out backwards;
+}
+
+@keyframes starAppear {
+    from {
+        opacity: 0;
+        transform: scale(0) rotate(180deg);
+    }
+    to {
+        opacity: 1;
+        transform: scale(1) rotate(0deg);
+    }
+}
+
+.book-star:hover {
+    transform: scale(1.3);
+    z-index: 100;
+}
+
+.star-glow {
+    position: absolute;
+    width: 80px;
+    height: 80px;
+    border-radius: 50%;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    pointer-events: none;
+}
+
+.star-core {
+    position: absolute;
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 20px;
+    background: rgba(255, 255, 255, 0.1);
+    backdrop-filter: blur(10px);
+    border: 2px solid rgba(255, 255, 255, 0.3);
+    box-shadow: 0 0 20px currentColor;
+    transition: all 0.3s;
+}
+
+.book-star:hover .star-core {
+    width: 50px;
+    height: 50px;
+    font-size: 24px;
+}
+
+/* Rating-based colors */
+.rating-5 { color: #fee140; }
+.rating-5 .star-glow { background: radial-gradient(circle, rgba(254, 225, 64, 0.6) 0%, transparent 70%); }
+
+.rating-4 { color: #4facfe; }
+.rating-4 .star-glow { background: radial-gradient(circle, rgba(79, 172, 254, 0.6) 0%, transparent 70%); }
+
+.rating-3 { color: #667eea; }
+.rating-3 .star-glow { background: radial-gradient(circle, rgba(102, 126, 234, 0.6) 0%, transparent 70%); }
+
+.rating-2 { color: #f5576c; }
+.rating-2 .star-glow { background: radial-gradient(circle, rgba(245, 87, 108, 0.6) 0%, transparent 70%); }
+
+.rating-1 { color: #95a5a6; }
+.rating-1 .star-glow { background: radial-gradient(circle, rgba(149, 165, 166, 0.6) 0%, transparent 70%); }
+
+.rating-0 { color: rgba(255, 255, 255, 0.5); }
+.rating-0 .star-glow { background: radial-gradient(circle, rgba(255, 255, 255, 0.3) 0%, transparent 70%); }
+
+/* Book Info Tooltip */
+.book-info {
+    position: absolute;
+    bottom: 100%;
+    left: 50%;
+    transform: translateX(-50%) translateY(-10px);
+    background: rgba(26, 26, 46, 0.95);
+    backdrop-filter: blur(20px);
+    padding: 16px;
+    border-radius: 12px;
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    min-width: 200px;
+    opacity: 0;
+    pointer-events: none;
+    transition: all 0.3s;
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.5);
+    z-index: 1000;
+}
+
+.book-star:hover .book-info {
+    opacity: 1;
+    transform: translateX(-50%) translateY(-20px);
+}
+
+.book-info h3 {
+    color: white;
+    font-size: 0.875rem;
+    margin: 0 0 8px 0;
+    font-weight: 600;
+}
+
+.book-info p {
+    color: rgba(255, 255, 255, 0.7);
+    font-size: 0.75rem;
+    margin: 4px 0;
+}
+
+.book-info .rating-stars {
+    color: #fee140;
+    font-size: 0.875rem;
+    margin-top: 8px;
+}
+
+/* Zoom Controls */
+.zoom-controls {
+    position: absolute;
+    bottom: 24px;
+    right: 24px;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    z-index: 100;
+}
+
+.zoom-btn {
+    width: 48px;
+    height: 48px;
+    background: rgba(255, 255, 255, 0.1);
+    backdrop-filter: blur(10px);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    border-radius: 12px;
+    color: white;
+    font-size: 24px;
+    cursor: pointer;
+    transition: all 0.3s;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.zoom-btn:hover {
+    background: rgba(102, 126, 234, 0.3);
+    transform: scale(1.1);
+}
+
+/* Empty State */
+.empty-universe {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    text-align: center;
+    color: rgba(255, 255, 255, 0.7);
+}
+
+.empty-universe .empty-icon {
+    font-size: 4rem;
+    margin-bottom: 16px;
+    animation: float 3s ease-in-out infinite;
+}
+
+.empty-universe h3 {
+    color: white;
+    margin-bottom: 12px;
+}
+
+.empty-universe p {
+    color: rgba(255, 255, 255, 0.6);
+    margin-bottom: 24px;
+}
+
+/* Legend */
+.legend {
+    position: absolute;
+    top: 24px;
+    left: 24px;
+    background: rgba(255, 255, 255, 0.1);
+    backdrop-filter: blur(10px);
+    padding: 16px;
+    border-radius: 12px;
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    color: white;
+    font-size: 0.8125rem;
+    z-index: 100;
+}
+
+.legend h4 {
+    margin: 0 0 12px 0;
+    font-size: 0.875rem;
+    color: rgba(255, 255, 255, 0.9);
+}
+
+.legend-item {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin: 6px 0;
+}
+
+.legend-color {
+    width: 16px;
+    height: 16px;
+    border-radius: 50%;
+    box-shadow: 0 0 10px currentColor;
+}
+
+@media (max-width: 768px) {
+    .galaxy-header h1 {
+        font-size: 2rem;
+    }
+
+    .legend {
+        font-size: 0.75rem;
+        padding: 12px;
+    }
+
+    .universe-container {
+        height: 60vh;
+    }
+}
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="galaxy-timeline">
+    <!-- Animated star background -->
+    <div class="stars" id="starsBackground"></div>
+
+    <div class="galaxy-header">
+        <h1>✨ Mein Lese-Universum</h1>
+        <p class="galaxy-subtitle">Jedes Buch ist ein Stern in deiner Lesereise</p>
+
+        <!-- Controls -->
+        <div class="galaxy-controls">
+            <input type="text" class="search-input" id="searchInput" placeholder="Buch suchen...">
+            <button class="control-btn" onclick="resetZoom()">🔄 Zurücksetzen</button>
+            <button class="control-btn" onclick="filterByRating(0)" id="filterAll">Alle</button>
+            <button class="control-btn" onclick="filterByRating(5)">⭐⭐⭐⭐⭐</button>
+            <button class="control-btn" onclick="filterByRating(4)">⭐⭐⭐⭐</button>
+            <button class="control-btn" onclick="autoTour()">🚀 Tour starten</button>
+        </div>
+    </div>
+
+    {% if read_statuses %}
+    <div class="universe-container">
+        <!-- Legend -->
+        <div class="legend">
+            <h4>Legende</h4>
+            <div class="legend-item">
+                <div class="legend-color" style="color: #fee140; background: currentColor;"></div>
+                <span>5 Sterne</span>
+            </div>
+            <div class="legend-item">
+                <div class="legend-color" style="color: #4facfe; background: currentColor;"></div>
+                <span>4 Sterne</span>
+            </div>
+            <div class="legend-item">
+                <div class="legend-color" style="color: #667eea; background: currentColor;"></div>
+                <span>3 Sterne</span>
+            </div>
+            <div class="legend-item">
+                <div class="legend-color" style="color: #f5576c; background: currentColor;"></div>
+                <span>2 Sterne</span>
+            </div>
+            <div class="legend-item">
+                <div class="legend-color" style="color: #95a5a6; background: currentColor;"></div>
+                <span>1 Stern</span>
+            </div>
+        </div>
+
+        <!-- Zoom Controls -->
+        <div class="zoom-controls">
+            <button class="zoom-btn" onclick="zoomIn()">+</button>
+            <button class="zoom-btn" onclick="zoomOut()">−</button>
+        </div>
+
+        <div class="universe-canvas" id="universeCanvas">
+            <!-- SVG for constellation lines -->
+            <svg class="constellation-svg" id="constellationSvg"></svg>
+
+            <!-- Books as stars -->
+            {% for status in read_statuses %}
+            <div class="book-star rating-{{ status.user_rating|default:0 }}"
+                 data-id="{{ forloop.counter }}"
+                 data-title="{{ status.book.title }}"
+                 data-rating="{{ status.user_rating|default:0 }}"
+                 data-date="{{ status.read_date|date:'Y-m-d' }}"
+                 onclick="focusOnBook(this)">
+                <div class="star-glow"></div>
+                <div class="star-core">📚</div>
+                <div class="book-info">
+                    <h3>{{ status.book.title|truncatechars:40 }}</h3>
+                    {% if status.book.authors %}
+                    <p>{{ status.book.authors|join:", " }}</p>
+                    {% endif %}
+                    <p>📅 {{ status.read_date|date:"d.m.Y" }}</p>
+                    {% if status.user_rating %}
+                    <p class="rating-stars">
+                        {% for i in "12345" %}{% if forloop.counter <= status.user_rating %}★{% else %}☆{% endif %}{% endfor %}
+                    </p>
+                    {% endif %}
+                    <p style="margin-top: 8px; font-size: 0.7rem; opacity: 0.7;">Klicke für Details</p>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+    {% else %}
+    <div class="universe-container">
+        <div class="empty-universe">
+            <div class="empty-icon">🌌</div>
+            <h3>Dein Universum wartet darauf, entdeckt zu werden</h3>
+            <p>Markiere Bücher als gelesen, um deine Lesereise zu visualisieren</p>
+            <a href="{% url 'books:list' %}" class="btn">Zur Bücherliste</a>
+        </div>
+    </div>
+    {% endif %}
+</div>
+
+<script>
+// Create background stars
+function createStars() {
+    const starsContainer = document.getElementById('starsBackground');
+    const starCount = 100;
+
+    for (let i = 0; i < starCount; i++) {
+        const star = document.createElement('div');
+        star.className = 'star';
+        star.style.left = Math.random() * 100 + '%';
+        star.style.top = Math.random() * 100 + '%';
+        star.style.animationDelay = Math.random() * 3 + 's';
+        starsContainer.appendChild(star);
+    }
+}
+
+// Position books in universe
+function positionBooks() {
+    const books = document.querySelectorAll('.book-star');
+    const container = document.getElementById('universeCanvas');
+    const width = container.clientWidth;
+    const height = container.clientHeight;
+
+    // Calculate positions based on date (spiral pattern)
+    const centerX = width / 2;
+    const centerY = height / 2;
+    const maxRadius = Math.min(width, height) * 0.4;
+
+    books.forEach((book, index) => {
+        const angle = (index / books.length) * Math.PI * 6; // 3 full rotations
+        const radius = (index / books.length) * maxRadius;
+
+        const x = centerX + Math.cos(angle) * radius;
+        const y = centerY + Math.sin(angle) * radius;
+
+        book.style.left = x + 'px';
+        book.style.top = y + 'px';
+        book.style.animationDelay = (index * 0.1) + 's';
+    });
+
+    // Draw constellation lines
+    drawConstellation();
+}
+
+// Draw lines connecting books
+function drawConstellation() {
+    const svg = document.getElementById('constellationSvg');
+    const books = Array.from(document.querySelectorAll('.book-star'));
+
+    svg.innerHTML = '';
+
+    for (let i = 0; i < books.length - 1; i++) {
+        if (books[i].style.display === 'none' || books[i + 1].style.display === 'none') continue;
+
+        const book1 = books[i];
+        const book2 = books[i + 1];
+
+        const x1 = parseFloat(book1.style.left);
+        const y1 = parseFloat(book1.style.top);
+        const x2 = parseFloat(book2.style.left);
+        const y2 = parseFloat(book2.style.top);
+
+        const line = document.createElementNS('http://www.w3.org/2000/svg', 'line');
+        line.setAttribute('x1', x1);
+        line.setAttribute('y1', y1);
+        line.setAttribute('x2', x2);
+        line.setAttribute('y2', y2);
+        line.setAttribute('class', 'constellation-line');
+        line.style.animationDelay = (i * 0.1) + 's';
+
+        svg.appendChild(line);
+    }
+}
+
+// Zoom functionality
+let currentZoom = 1;
+const canvas = document.getElementById('universeCanvas');
+
+function zoomIn() {
+    currentZoom = Math.min(currentZoom * 1.3, 3);
+    canvas.style.transform = `scale(${currentZoom})`;
+}
+
+function zoomOut() {
+    currentZoom = Math.max(currentZoom / 1.3, 0.5);
+    canvas.style.transform = `scale(${currentZoom})`;
+}
+
+function resetZoom() {
+    currentZoom = 1;
+    canvas.style.transform = 'scale(1)';
+}
+
+// Focus on specific book
+function focusOnBook(bookElement) {
+    const bookId = bookElement.dataset.id;
+    const bookTitle = bookElement.dataset.title;
+
+    // Zoom into the book
+    const rect = bookElement.getBoundingClientRect();
+    const container = document.getElementById('universeCanvas');
+
+    // Center and zoom
+    currentZoom = 2;
+    canvas.style.transform = `scale(${currentZoom})`;
+
+    // Optional: Navigate to book detail
+    // window.location.href = bookElement.querySelector('a')?.href;
+}
+
+// Filter by rating
+function filterByRating(rating) {
+    const books = document.querySelectorAll('.book-star');
+    const filterButtons = document.querySelectorAll('.control-btn');
+
+    // Update active button
+    filterButtons.forEach(btn => btn.classList.remove('active'));
+    if (rating === 0) {
+        document.getElementById('filterAll').classList.add('active');
+    } else {
+        event.target.classList.add('active');
+    }
+
+    books.forEach(book => {
+        const bookRating = parseInt(book.dataset.rating);
+        if (rating === 0 || bookRating === rating) {
+            book.style.display = '';
+        } else {
+            book.style.display = 'none';
+        }
+    });
+
+    drawConstellation();
+}
+
+// Search functionality
+document.getElementById('searchInput')?.addEventListener('input', function(e) {
+    const searchTerm = e.target.value.toLowerCase();
+    const books = document.querySelectorAll('.book-star');
+
+    books.forEach(book => {
+        const title = book.dataset.title.toLowerCase();
+        if (title.includes(searchTerm)) {
+            book.style.display = '';
+            book.style.opacity = '1';
+        } else {
+            book.style.opacity = '0.2';
+        }
+    });
+});
+
+// Auto tour through books
+let tourInterval;
+function autoTour() {
+    const books = Array.from(document.querySelectorAll('.book-star'));
+    let currentIndex = 0;
+
+    if (tourInterval) {
+        clearInterval(tourInterval);
+        tourInterval = null;
+        resetZoom();
+        return;
+    }
+
+    tourInterval = setInterval(() => {
+        if (currentIndex >= books.length) {
+            clearInterval(tourInterval);
+            tourInterval = null;
+            resetZoom();
+            return;
+        }
+
+        focusOnBook(books[currentIndex]);
+        currentIndex++;
+    }, 3000);
+}
+
+// Initialize
+document.addEventListener('DOMContentLoaded', function() {
+    createStars();
+    positionBooks();
+
+    // Reposition on resize
+    window.addEventListener('resize', positionBooks);
+
+    // Set "All" filter as active by default
+    document.getElementById('filterAll')?.classList.add('active');
+});
+</script>
+{% endblock %}

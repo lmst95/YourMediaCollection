@@ -1,0 +1,158 @@
+{% extends 'base.html' %}
+
+{% block title %}Aufgaben - Your Media Collection{% endblock %}
+
+{% block content %}
+<div class="todos-page">
+    <div class="page-header">
+        <h1>Meine Aufgaben</h1>
+        <a href="{% url 'todos:create' %}" class="btn">+ Neue Aufgabe</a>
+    </div>
+
+    <!-- Statistics -->
+    <div class="stats-grid">
+        <div class="stat-card gradient-1">
+            <span class="stat-icon">📊</span>
+            <h3 data-count="{{ stats.total }}">{{ stats.total }}</h3>
+            <p>Gesamt</p>
+        </div>
+        <div class="stat-card gradient-2">
+            <span class="stat-icon">📝</span>
+            <h3 data-count="{{ stats.planned }}">{{ stats.planned }}</h3>
+            <p>Geplant</p>
+        </div>
+        <div class="stat-card gradient-4">
+            <span class="stat-icon">🔄</span>
+            <h3 data-count="{{ stats.in_progress }}">{{ stats.in_progress }}</h3>
+            <p>In Bearbeitung</p>
+        </div>
+        <div class="stat-card gradient-3">
+            <span class="stat-icon">✅</span>
+            <h3 data-count="{{ stats.completed }}">{{ stats.completed }}</h3>
+            <p>Erledigt</p>
+        </div>
+    </div>
+
+    <!-- Filters -->
+    <div class="filters">
+        <a href="{% url 'todos:list' %}" class="filter-btn {% if not status_filter %}active{% endif %}">
+            Alle
+        </a>
+        {% for status_code, status_name in status_choices %}
+            <a href="?status={{ status_code }}" class="filter-btn {% if status_filter == status_code %}active{% endif %}">
+                {{ status_name }}
+            </a>
+        {% endfor %}
+    </div>
+
+    <!-- Todo List -->
+    <div class="todo-list">
+        {% for todo in todos %}
+            <div class="todo-item {% if todo.status == 'COMPLETED' %}completed{% endif %}">
+                <div class="todo-header">
+                    <h3>
+                        <a href="{% url 'todos:detail' todo.pk %}">{{ todo.title }}</a>
+                    </h3>
+                    <div class="todo-actions">
+                        <form method="post" action="{% url 'todos:toggle' todo.pk %}" style="display: inline;">
+                            {% csrf_token %}
+                            <button type="submit" class="btn-icon" title="{% if todo.status == 'COMPLETED' %}Als unerledigt markieren{% else %}Als erledigt markieren{% endif %}">
+                                {% if todo.status == 'COMPLETED' %}
+                                    ✓
+                                {% else %}
+                                    ○
+                                {% endif %}
+                            </button>
+                        </form>
+                        <a href="{% url 'todos:update' todo.pk %}" class="btn-icon" title="Bearbeiten">✎</a>
+                        <a href="{% url 'todos:delete' todo.pk %}" class="btn-icon delete" title="Löschen">×</a>
+                    </div>
+                </div>
+
+                <div class="todo-meta">
+                    <span class="status status-{{ todo.status|lower }}">{{ todo.get_status_display }}</span>
+                    {% if todo.due_date %}
+                        <span class="due-date">📅 Fällig: {{ todo.due_date|date:"d.m.Y" }}</span>
+                    {% endif %}
+                </div>
+
+                {% if todo.description %}
+                    <p class="todo-description">{{ todo.description|truncatewords:30 }}</p>
+                {% endif %}
+
+                {% if todo.linked_items.all %}
+                    <div class="linked-items-preview">
+                        <span class="linked-label">Verknüpft mit:</span>
+                        <div class="linked-chips">
+                            {% for item in todo.linked_items.all|slice:":5" %}
+                                {% if item.content_type.model == 'book' %}
+                                    <a href="{% url 'books:detail' item.object_id %}" class="linked-chip" title="{{ item.content_object }}">
+                                        <span class="chip-icon">📚</span>
+                                        <span class="chip-text">{{ item.content_object|truncatechars:25 }}</span>
+                                    </a>
+                                {% elif item.content_type.model == 'document' %}
+                                    <a href="{% url 'documents:detail' item.object_id %}" class="linked-chip" title="{{ item.content_object }}">
+                                        <span class="chip-icon">📄</span>
+                                        <span class="chip-text">{{ item.content_object|truncatechars:25 }}</span>
+                                    </a>
+                                {% elif item.content_type.model == 'collection' %}
+                                    <a href="{% url 'collections:detail' item.object_id %}" class="linked-chip" title="{{ item.content_object }}">
+                                        <span class="chip-icon">📁</span>
+                                        <span class="chip-text">{{ item.content_object|truncatechars:25 }}</span>
+                                    </a>
+                                {% else %}
+                                    <span class="linked-chip" title="{{ item.content_object }}">
+                                        <span class="chip-icon">🔗</span>
+                                        <span class="chip-text">{{ item.content_object|truncatechars:25 }}</span>
+                                    </span>
+                                {% endif %}
+                            {% endfor %}
+                            {% if todo.linked_items.count > 5 %}
+                                <span class="linked-chip more">+{{ todo.linked_items.count|add:"-5" }} mehr</span>
+                            {% endif %}
+                        </div>
+                    </div>
+                {% endif %}
+
+                <div class="todo-footer">
+                    <small>Erstellt: {{ todo.created_at|date:"d.m.Y H:i" }}</small>
+                    {% if todo.completed_at %}
+                        <small>Erledigt: {{ todo.completed_at|date:"d.m.Y H:i" }}</small>
+                    {% endif %}
+                </div>
+            </div>
+        {% empty %}
+            <div class="empty-state">
+                <div class="empty-icon">✅</div>
+                <h3>Keine Aufgaben gefunden</h3>
+                <p>Du hast noch keine Aufgaben erstellt.</p>
+                <a href="{% url 'todos:create' %}" class="btn">Erste Aufgabe erstellen</a>
+            </div>
+        {% endfor %}
+    </div>
+
+    <!-- Pagination -->
+    {% if is_paginated %}
+        <div class="pagination">
+            {% if page_obj.has_previous %}
+                <a href="?page={{ page_obj.previous_page_number }}{% if status_filter %}&status={{ status_filter }}{% endif %}" class="btn btn-outline">← Zurück</a>
+            {% endif %}
+
+            <span class="page-info">
+                Seite {{ page_obj.number }} von {{ page_obj.paginator.num_pages }}
+            </span>
+
+            {% if page_obj.has_next %}
+                <a href="?page={{ page_obj.next_page_number }}{% if status_filter %}&status={{ status_filter }}{% endif %}" class="btn btn-outline">Weiter →</a>
+            {% endif %}
+        </div>
+    {% endif %}
+</div>
+
+<style>
+.todos-page {
+    max-width: 1000px;
+    margin: 0 auto;
+}
+</style>
+{% endblock %}

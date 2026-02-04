@@ -1,0 +1,94 @@
+{% extends 'base.html' %}
+
+{% block title %}Aufgabe löschen - Your Media Collection{% endblock %}
+
+{% block content %}
+<div class="form-page">
+    <div class="form-container">
+        <h1>Aufgabe löschen</h1>
+
+        <div class="confirm-delete">
+            <p>Möchtest du diese Aufgabe wirklich löschen?</p>
+
+            <div class="todo-preview">
+                <h3>{{ object.title }}</h3>
+                {% if object.description %}
+                    <p>{{ object.description }}</p>
+                {% endif %}
+                <div class="meta">
+                    <span class="status">{{ object.get_status_display }}</span>
+                    {% if object.due_date %}
+                        <span>Fällig: {{ object.due_date|date:"d.m.Y" }}</span>
+                    {% endif %}
+                </div>
+            </div>
+
+            <form method="post">
+                {% csrf_token %}
+                <div class="form-actions">
+                    <button type="submit" class="btn btn-danger">Ja, löschen</button>
+                    <a href="{% url 'todos:list' %}" class="btn btn-secondary">Abbrechen</a>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<style>
+.confirm-delete {
+    text-align: center;
+}
+
+.confirm-delete > p {
+    font-size: 18px;
+    color: #2c3e50;
+    margin-bottom: 30px;
+}
+
+.todo-preview {
+    background: #f8f9fa;
+    border-radius: 8px;
+    padding: 20px;
+    margin-bottom: 30px;
+    text-align: left;
+}
+
+.todo-preview h3 {
+    margin: 0 0 10px 0;
+    color: #2c3e50;
+}
+
+.todo-preview p {
+    color: #7f8c8d;
+    margin: 10px 0;
+}
+
+.todo-preview .meta {
+    display: flex;
+    gap: 15px;
+    margin-top: 15px;
+    padding-top: 15px;
+    border-top: 1px solid #ddd;
+}
+
+.todo-preview .status {
+    background: #ecf0f1;
+    padding: 4px 12px;
+    border-radius: 12px;
+    font-size: 12px;
+}
+
+.form-actions {
+    justify-content: center;
+}
+
+.btn-danger {
+    background: #e74c3c;
+    color: white;
+}
+
+.btn-danger:hover {
+    background: #c0392b;
+}
+</style>
+{% endblock %}

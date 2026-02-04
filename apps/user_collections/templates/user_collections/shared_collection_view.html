@@ -1,0 +1,353 @@
+{% extends 'base.html' %}
+
+{% block title %}{{ collection.name }} - Geteilte Sammlung{% endblock %}
+
+{% block content %}
+<div class="shared-collection-page">
+    <div class="shared-banner">
+        <span class="shared-icon">🔗</span>
+        <div class="shared-info">
+            <strong>Geteilte Sammlung</strong>
+            <span>von {{ collection.user.username }}</span>
+        </div>
+        {% if is_owner %}
+        <a href="{% url 'collections:detail' collection.pk %}" class="btn btn-primary">Zur eigenen Ansicht</a>
+        {% endif %}
+    </div>
+
+    <div class="detail-page">
+        <div class="detail-header">
+            <h1>{{ collection.name }}</h1>
+        </div>
+
+        <div class="detail-content">
+            <div class="info-section">
+                <h2>Details</h2>
+
+                <div class="info-grid">
+                    <div class="info-item">
+                        <label>Ersteller</label>
+                        <span>{{ collection.user.username }}</span>
+                    </div>
+
+                    <div class="info-item">
+                        <label>Erstellt</label>
+                        <span>{{ collection.created_at|date:"d.m.Y H:i" }}</span>
+                    </div>
+
+                    <div class="info-item">
+                        <label>Aktualisiert</label>
+                        <span>{{ collection.updated_at|date:"d.m.Y H:i" }}</span>
+                    </div>
+
+                    <div class="info-item">
+                        <label>Anzahl Items</label>
+                        <span>{{ collection.items.count }}</span>
+                    </div>
+                </div>
+
+                {% if collection.description %}
+                <div class="description-section">
+                    <h3>Beschreibung</h3>
+                    <p>{{ collection.description|linebreaks }}</p>
+                </div>
+                {% endif %}
+            </div>
+
+            {% if collection.items.all %}
+            <div class="items-section">
+                <h2>Items in dieser Sammlung ({{ collection.items.count }})</h2>
+
+                <div class="items-list">
+                    {% for item in collection.items.all %}
+                    <div class="collection-item">
+                        <div class="item-icon">
+                            {% if item.content_type.model == 'book' %}
+                                <span class="icon">📚</span>
+                            {% elif item.content_type.model == 'document' %}
+                                <span class="icon">📄</span>
+                            {% else %}
+                                <span class="icon">🔗</span>
+                            {% endif %}
+                        </div>
+                        <div class="item-info">
+                            <div class="item-header">
+                                <span class="item-type-label">
+                                    {% if item.content_type.model == 'book' %}
+                                        Buch
+                                    {% elif item.content_type.model == 'document' %}
+                                        Dokument
+                                    {% else %}
+                                        {{ item.content_type.model }}
+                                    {% endif %}
+                                </span>
+                            </div>
+    
+                            {% if item.content_type.model == 'book' %}
+                            <a href="{% url 'books:detail' item.object_id %}" class="item-link">
+                                <strong>{{ item.content_object }}</strong>
+                            </a>
+                            {% else %}
+                                <strong>{{ item.content_object }}</strong>
+                            {% endif %}
+
+                            {% if item.statuses %}
+                                <div class="status-badges">
+                                    {% for status_display in item.get_status_displays %}
+                                        <span class="status-badge">{{ status_display }}</span>
+                                    {% endfor %}
+                                </div>
+                            {% endif %}
+                            <small>Hinzugefügt: {{ item.added_at|date:"d.m.Y H:i" }}</small>
+                            {% if item.personal_note %}
+                                <p class="item-notes">{{ item.personal_note }}</p>
+                            {% endif %}
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+            {% else %}
+            <div class="empty-collection">
+                <p>Diese Sammlung ist noch leer.</p>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+
+<style>
+.shared-collection-page {
+    max-width: 900px;
+    margin: 0 auto;
+}
+
+.shared-banner {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+    padding: 15px 20px;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    border-radius: 8px;
+    margin-bottom: 30px;
+    color: white;
+}
+
+.shared-icon {
+    font-size: 32px;
+}
+
+.shared-info {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+}
+
+.shared-info strong {
+    font-size: 16px;
+}
+
+.shared-info span {
+    font-size: 14px;
+    opacity: 0.9;
+}
+
+.detail-page {
+    margin-top: 0;
+}
+
+.detail-header {
+    margin-bottom: 30px;
+    padding-bottom: 20px;
+    border-bottom: 2px solid #ecf0f1;
+}
+
+.detail-header h1 {
+    margin: 0;
+    color: #2c3e50;
+}
+
+.detail-content {
+    background: white;
+    border-radius: 8px;
+    padding: 30px;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
+.info-section h2,
+.items-section h2 {
+    margin: 0 0 20px 0;
+    color: #2c3e50;
+    font-size: 20px;
+}
+
+.info-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 20px;
+    margin-bottom: 30px;
+}
+
+.info-item {
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+}
+
+.info-item label {
+    font-size: 12px;
+    color: #7f8c8d;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.info-item span {
+    font-size: 16px;
+    color: #2c3e50;
+}
+
+.description-section {
+    margin-top: 30px;
+    padding-top: 30px;
+    border-top: 1px solid #ecf0f1;
+}
+
+.description-section h3 {
+    margin: 0 0 15px 0;
+    color: #2c3e50;
+}
+
+.description-section p {
+    color: #555;
+    line-height: 1.6;
+}
+
+.items-section {
+    margin-top: 30px;
+    padding-top: 30px;
+    border-top: 1px solid #ecf0f1;
+}
+
+.items-list {
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+}
+
+.item-link {
+    text-decoration: none;
+    color: inherit;
+    transition: color 0.2s;
+}
+
+.item-link:hover {
+    color: #3498db;
+}
+
+.item-link:hover strong {
+    color: #3498db;
+}
+
+.collection-item {
+    display: flex;
+    gap: 15px;
+    padding: 15px;
+    background: #f8f9fa;
+    border-radius: 6px;
+    border-left: 3px solid #667eea;
+    transition: all 0.2s ease;
+}
+
+.collection-item:hover {
+    background: #e9ecef;
+    border-left-color: #764ba2;
+}
+
+.item-icon {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.item-icon .icon {
+    font-size: 32px;
+}
+
+.item-info {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+}
+
+.item-header {
+    margin-bottom: 5px;
+}
+
+.item-type-label {
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    color: #7f8c8d;
+    font-weight: 600;
+}
+
+.item-info strong {
+    color: #2c3e50;
+    font-size: 15px;
+}
+
+.item-info small {
+    color: #95a5a6;
+    font-size: 12px;
+}
+
+.status-badges {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    margin: 5px 0;
+}
+
+.status-badge {
+    display: inline-block;
+    padding: 4px 10px;
+    border-radius: 12px;
+    font-size: 11px;
+    font-weight: 500;
+    text-transform: uppercase;
+    background: #e8f4f8;
+    color: #0c5460;
+}
+
+.item-notes {
+    color: #7f8c8d;
+    font-size: 13px;
+    margin-top: 5px;
+    font-style: italic;
+}
+
+.empty-collection {
+    text-align: center;
+    padding: 60px 20px;
+    color: #7f8c8d;
+    font-style: italic;
+}
+
+.btn-primary {
+    background: white;
+    color: #667eea;
+    padding: 8px 16px;
+    border-radius: 6px;
+    text-decoration: none;
+    font-weight: 500;
+    transition: all 0.2s;
+}
+
+.btn-primary:hover {
+    background: #f8f9fa;
+    transform: translateY(-1px);
+}
+</style>
+{% endblock %}

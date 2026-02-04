@@ -1,3 +1,1 @@
-"""
-Django apps package for yourmedia project.
-"""
+# Apps package

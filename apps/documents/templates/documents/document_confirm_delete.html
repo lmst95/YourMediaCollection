@@ -1,0 +1,124 @@
+{% extends 'base.html' %}
+
+{% block title %}Dokument löschen - Your Media Collection{% endblock %}
+
+{% block content %}
+<div class="delete-page">
+    <div class="delete-container">
+        <h1>Dokument löschen</h1>
+
+        <div class="warning-box">
+            <span class="warning-icon">⚠️</span>
+            <div>
+                <p><strong>Möchtest du dieses Dokument wirklich löschen?</strong></p>
+                <p class="document-name">{{ object.title }}</p>
+                <p class="warning-text">
+                    Diese Aktion kann nicht rückgängig gemacht werden.
+                    Das Dokument und die zugehörige Datei werden permanent gelöscht.
+                </p>
+                {% if object.file %}
+                <p class="file-info">
+                    <strong>Datei:</strong> {{ object.file.name|slice:"-50:" }}<br>
+                    <strong>Größe:</strong> {{ object.get_file_size_display }}
+                </p>
+                {% endif %}
+            </div>
+        </div>
+
+        <form method="post">
+            {% csrf_token %}
+
+            <div class="form-actions">
+                <button type="submit" class="btn btn-danger">Ja, löschen</button>
+                <a href="{% url 'documents:detail' object.pk %}" class="btn btn-secondary">Abbrechen</a>
+            </div>
+        </form>
+    </div>
+</div>
+
+<style>
+.delete-page {
+    max-width: 600px;
+    margin: 0 auto;
+    padding: 20px;
+}
+
+.delete-container {
+    background: white;
+    border-radius: 8px;
+    padding: 30px;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
+.delete-container h1 {
+    margin-bottom: 30px;
+    color: #2c3e50;
+}
+
+.warning-box {
+    background: #fff3cd;
+    border: 2px solid #ffc107;
+    border-radius: 6px;
+    padding: 20px;
+    margin-bottom: 30px;
+    display: flex;
+    gap: 15px;
+}
+
+.warning-icon {
+    font-size: 32px;
+    flex-shrink: 0;
+}
+
+.warning-box p {
+    margin: 0 0 10px 0;
+}
+
+.warning-box p:last-child {
+    margin-bottom: 0;
+}
+
+.document-name {
+    font-size: 18px;
+    font-weight: 600;
+    color: #2c3e50;
+}
+
+.warning-text {
+    color: #856404;
+    font-size: 14px;
+}
+
+.file-info {
+    background: white;
+    padding: 10px;
+    border-radius: 4px;
+    font-size: 13px;
+    color: #555;
+    margin-top: 15px;
+}
+
+.form-actions {
+    display: flex;
+    gap: 10px;
+}
+
+.btn-danger {
+    background: #e74c3c;
+    color: white;
+}
+
+.btn-danger:hover {
+    background: #c0392b;
+}
+
+.btn-secondary {
+    background: #95a5a6;
+    color: white;
+}
+
+.btn-secondary:hover {
+    background: #7f8c8d;
+}
+</style>
+{% endblock %}

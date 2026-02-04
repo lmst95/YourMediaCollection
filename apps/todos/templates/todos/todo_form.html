@@ -1,0 +1,310 @@
+{% extends 'base.html' %}
+
+{% block title %}{% if object %}Aufgabe bearbeiten{% else %}Neue Aufgabe{% endif %} - Your Media Collection{% endblock %}
+
+{% block content %}
+<div class="form-page">
+    <div class="form-container">
+        <h1>{% if object %}Aufgabe bearbeiten{% else %}Neue Aufgabe erstellen{% endif %}</h1>
+
+        <form method="post">
+            {% csrf_token %}
+
+            <div class="form-group">
+                <label for="{{ form.title.id_for_label }}">Titel*</label>
+                {{ form.title }}
+                {% if form.title.errors %}
+                    <div class="error-message">
+                        {{ form.title.errors }}
+                    </div>
+                {% endif %}
+            </div>
+
+            <div class="form-group">
+                <label for="{{ form.description.id_for_label }}">Beschreibung</label>
+                {{ form.description }}
+                {% if form.description.errors %}
+                    <div class="error-message">
+                        {{ form.description.errors }}
+                    </div>
+                {% endif %}
+            </div>
+
+            <div class="form-row">
+                <div class="form-group">
+                    <label for="{{ form.status.id_for_label }}">Status</label>
+                    {{ form.status }}
+                    {% if form.status.errors %}
+                        <div class="error-message">
+                            {{ form.status.errors }}
+                        </div>
+                    {% endif %}
+                </div>
+
+                <div class="form-group">
+                    <label for="{{ form.due_date.id_for_label }}">Fälligkeitsdatum</label>
+                    {{ form.due_date }}
+                    {% if form.due_date.errors %}
+                        <div class="error-message">
+                            {{ form.due_date.errors }}
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+
+            <div class="form-section">
+                <h3>Verknüpfungen</h3>
+                <p class="section-description">Verknüpfen Sie diese Aufgabe mit Büchern, Dokumenten oder Sammlungen.</p>
+
+                {% if form.linked_books %}
+                <div class="form-group">
+                    <label>{{ form.linked_books.label }}</label>
+                    <input type="text"
+                           class="filter-input"
+                           placeholder="Bücher durchsuchen..."
+                           data-target="linked_books">
+                    <div class="checkbox-group" id="checkbox-group-linked_books">
+                        {{ form.linked_books }}
+                    </div>
+                    {% if form.linked_books.errors %}
+                        <div class="error-message">
+                            {{ form.linked_books.errors }}
+                        </div>
+                    {% endif %}
+                </div>
+                {% endif %}
+
+                {% if form.linked_documents %}
+                <div class="form-group">
+                    <label>{{ form.linked_documents.label }}</label>
+                    <input type="text"
+                           class="filter-input"
+                           placeholder="Dokumente durchsuchen..."
+                           data-target="linked_documents">
+                    <div class="checkbox-group" id="checkbox-group-linked_documents">
+                        {{ form.linked_documents }}
+                    </div>
+                    {% if form.linked_documents.errors %}
+                        <div class="error-message">
+                            {{ form.linked_documents.errors }}
+                        </div>
+                    {% endif %}
+                </div>
+                {% endif %}
+
+                {% if form.linked_collections %}
+                <div class="form-group">
+                    <label>{{ form.linked_collections.label }}</label>
+                    <input type="text"
+                           class="filter-input"
+                           placeholder="Sammlungen durchsuchen..."
+                           data-target="linked_collections">
+                    <div class="checkbox-group" id="checkbox-group-linked_collections">
+                        {{ form.linked_collections }}
+                    </div>
+                    {% if form.linked_collections.errors %}
+                        <div class="error-message">
+                            {{ form.linked_collections.errors }}
+                        </div>
+                    {% endif %}
+                </div>
+                {% endif %}
+            </div>
+
+            <div class="form-actions">
+                <button type="submit" class="btn btn-primary">
+                    {% if object %}Aktualisieren{% else %}Erstellen{% endif %}
+                </button>
+                <a href="{% url 'todos:list' %}" class="btn btn-secondary">Abbrechen</a>
+            </div>
+        </form>
+    </div>
+</div>
+
+<style>
+.form-page {
+    max-width: 800px;
+    margin: 0 auto;
+    padding: 20px;
+}
+
+.form-container {
+    background: white;
+    border-radius: 8px;
+    padding: 30px;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
+.form-container h1 {
+    margin-bottom: 30px;
+    color: #2c3e50;
+}
+
+.form-group {
+    margin-bottom: 20px;
+}
+
+.form-group label {
+    display: block;
+    margin-bottom: 8px;
+    font-weight: 500;
+    color: #2c3e50;
+}
+
+.form-input {
+    width: 100%;
+    padding: 10px;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    font-size: 14px;
+}
+
+.form-input:focus {
+    outline: none;
+    border-color: #3498db;
+    box-shadow: 0 0 0 3px rgba(52, 152, 219, 0.1);
+}
+
+.form-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 20px;
+}
+
+.error-message {
+    color: #e74c3c;
+    font-size: 14px;
+    margin-top: 5px;
+}
+
+.form-section {
+    margin-top: 30px;
+    padding-top: 30px;
+    border-top: 2px solid #ecf0f1;
+}
+
+.form-section h3 {
+    margin-bottom: 10px;
+    color: #2c3e50;
+    font-size: 18px;
+}
+
+.section-description {
+    color: #7f8c8d;
+    font-size: 14px;
+    margin-bottom: 20px;
+}
+
+.filter-input {
+    width: 100%;
+    padding: 8px 12px;
+    margin-bottom: 10px;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    font-size: 14px;
+}
+
+.filter-input:focus {
+    outline: none;
+    border-color: #3498db;
+    box-shadow: 0 0 0 3px rgba(52, 152, 219, 0.1);
+}
+
+.checkbox-group {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    padding: 10px;
+    background: #f8f9fa;
+    border-radius: 4px;
+    max-height: 200px;
+    overflow-y: auto;
+}
+
+.checkbox-group label {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 5px;
+    cursor: pointer;
+    font-weight: normal;
+}
+
+.checkbox-group input[type="checkbox"] {
+    cursor: pointer;
+}
+
+.form-actions {
+    display: flex;
+    gap: 10px;
+    margin-top: 30px;
+    padding-top: 20px;
+    border-top: 1px solid #ecf0f1;
+}
+
+.btn-primary {
+    background: #3498db;
+    color: white;
+}
+
+.btn-primary:hover {
+    background: #2980b9;
+}
+
+@media (max-width: 768px) {
+    .form-row {
+        grid-template-columns: 1fr;
+    }
+}
+</style>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Get all filter inputs
+    const filterInputs = document.querySelectorAll('.filter-input');
+
+    filterInputs.forEach(function(input) {
+        input.addEventListener('input', function() {
+            const searchTerm = this.value.toLowerCase();
+            const targetId = this.getAttribute('data-target');
+            const checkboxGroup = document.getElementById('checkbox-group-' + targetId);
+
+            if (!checkboxGroup) return;
+
+            // Get all checkbox labels in the group
+            const labels = checkboxGroup.querySelectorAll('label');
+
+            labels.forEach(function(label) {
+                const text = label.textContent.toLowerCase();
+
+                if (text.includes(searchTerm)) {
+                    label.style.display = 'flex';
+                } else {
+                    label.style.display = 'none';
+                }
+            });
+
+            // Show message if no results
+            const visibleLabels = Array.from(labels).filter(label => label.style.display !== 'none');
+
+            // Remove any existing "no results" message
+            const existingMessage = checkboxGroup.querySelector('.no-results-message');
+            if (existingMessage) {
+                existingMessage.remove();
+            }
+
+            if (visibleLabels.length === 0 && searchTerm.length > 0) {
+                const noResultsMsg = document.createElement('div');
+                noResultsMsg.className = 'no-results-message';
+                noResultsMsg.textContent = 'Keine Ergebnisse gefunden';
+                noResultsMsg.style.padding = '10px';
+                noResultsMsg.style.color = '#7f8c8d';
+                noResultsMsg.style.textAlign = 'center';
+                noResultsMsg.style.fontStyle = 'italic';
+                checkboxGroup.appendChild(noResultsMsg);
+            }
+        });
+    });
+});
+</script>
+{% endblock %}

@@ -1,0 +1,59 @@
+<nav class="navbar">
+    <div class="navbar-inner">
+        <a href="{% url 'home' %}" class="logo">YMC</a>
+
+        <div class="mobile-menu-toggle" onclick="toggleMobileMenu()">
+            <span></span>
+            <span></span>
+            <span></span>
+        </div>
+
+        <ul class="nav-links" id="navLinks">
+            <li><a href="{% url 'home' %}">Home</a></li>
+            <li><a href="{% url 'books:list' %}">Bücher</a></li>
+            {% if user.is_authenticated %}
+                <li><a href="{% url 'collections:list' %}">Sammlungen</a></li>
+                <li><a href="{% url 'documents:list' %}">Dokumente</a></li>
+                <li><a href="{% url 'todos:list' %}">Aufgaben</a></li>
+                <li><a href="{% url 'books:timeline' %}">Timeline</a></li>
+                <li>
+                    <span class="user-greeting">
+                        <span class="user-avatar">{{ user.username|make_list|first|upper }}</span>
+                        {{ user.username }}
+                    </span>
+                </li>
+                <li><a href="{% url 'password_change' %}">Passwort</a></li>
+                <li>
+                    <form method="post" action="{% url 'logout' %}" style="display: inline; margin: 0;">
+                        {% csrf_token %}
+                        <button type="submit" class="logout-btn">Abmelden</button>
+                    </form>
+                </li>
+            {% else %}
+                <li><a href="{% url 'login' %}">Anmelden</a></li>
+            {% endif %}
+            {% if user.is_staff %}
+                <li><a href="{% url 'admin:index' %}">Admin</a></li>
+            {% endif %}
+        </ul>
+    </div>
+</nav>
+
+<script>
+function toggleMobileMenu() {
+    const navLinks = document.getElementById('navLinks');
+    const toggle = document.querySelector('.mobile-menu-toggle');
+    navLinks.classList.toggle('active');
+    toggle.classList.toggle('active');
+}
+
+// Close mobile menu when clicking outside
+document.addEventListener('click', function(event) {
+    const navLinks = document.getElementById('navLinks');
+    const toggle = document.querySelector('.mobile-menu-toggle');
+    if (!event.target.closest('.navbar')) {
+        navLinks.classList.remove('active');
+        toggle.classList.remove('active');
+    }
+});
+</script>

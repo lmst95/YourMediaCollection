@@ -1,0 +1,112 @@
+{% extends 'base.html' %}
+
+{% block title %}Meine Dokumente - Your Media Collection{% endblock %}
+
+{% block content %}
+<div class="documents-page">
+    <div class="page-header">
+        <h1>Meine Dokumente</h1>
+        <a href="{% url 'documents:create' %}" class="btn">+ Dokument hochladen</a>
+    </div>
+
+    {% if documents %}
+        <div class="documents-grid">
+            {% for document in documents %}
+            <div class="document-card">
+                <div class="document-icon">
+                    <span class="icon">
+                        {% if document.file_type == 'PDF' %}📕
+                        {% elif document.file_type == 'EPUB' or document.file_type == 'MOBI' %}📘
+                        {% elif document.file_type == 'TXT' %}📄
+                        {% elif document.file_type == 'DOC' or document.file_type == 'DOCX' %}📃
+                        {% else %}📄{% endif %}
+                    </span>
+                </div>
+                <div class="document-info">
+                    <h3>
+                        <a href="{% url 'documents:detail' document.pk %}">
+                            {{ document.title }}
+                        </a>
+                    </h3>
+                    <div class="book-meta">
+                        <span class="meta-item">{{ document.get_file_type_display }}</span>
+                        {% if document.file_size %}
+                        <span class="meta-item">{{ document.get_file_size_display }}</span>
+                        {% endif %}
+                    </div>
+                    {% if document.description %}
+                    <p class="book-subtitle">{{ document.description|truncatewords:15 }}</p>
+                    {% endif %}
+                    {% if document.authors %}
+                    <p class="book-authors">
+                        <strong>Autor(en):</strong> {{ document.authors|join:", " }}
+                    </p>
+                    {% endif %}
+                </div>
+                <div class="book-actions">
+                    <a href="{% url 'documents:detail' document.pk %}" class="btn btn-sm btn-outline" title="Details">Details</a>
+                    <a href="{% url 'documents:update' document.pk %}" class="btn btn-sm btn-outline" title="Bearbeiten">Bearbeiten</a>
+                    {% if document.file %}
+                    <a href="{{ document.file.url }}" class="btn btn-sm" title="Herunterladen" download>Download</a>
+                    {% endif %}
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+
+        {% if is_paginated %}
+        <div class="pagination">
+            {% if page_obj.has_previous %}
+                <a href="?page={{ page_obj.previous_page_number }}" class="btn btn-outline">← Zurück</a>
+            {% endif %}
+
+            <span class="page-info">
+                Seite {{ page_obj.number }} von {{ page_obj.paginator.num_pages }}
+            </span>
+
+            {% if page_obj.has_next %}
+                <a href="?page={{ page_obj.next_page_number }}" class="btn btn-outline">Weiter →</a>
+            {% endif %}
+        </div>
+        {% endif %}
+
+    {% else %}
+        <div class="empty-state">
+            <div class="empty-icon">📁</div>
+            <h3>Keine Dokumente vorhanden</h3>
+            <p>Du hast noch keine Dokumente hochgeladen.</p>
+            <a href="{% url 'documents:create' %}" class="btn">Erstes Dokument hochladen</a>
+        </div>
+    {% endif %}
+</div>
+
+<style>
+.documents-page {
+    max-width: 1200px;
+    margin: 0 auto;
+}
+
+.document-card {
+    display: flex;
+    gap: var(--space-md);
+    align-items: flex-start;
+}
+
+.document-card .book-actions {
+    flex-direction: column;
+    border-top: none;
+    padding-top: 0;
+}
+
+@media (max-width: 768px) {
+    .document-card {
+        flex-direction: column;
+    }
+
+    .document-card .book-actions {
+        flex-direction: row;
+        flex-wrap: wrap;
+    }
+}
+</style>
+{% endblock %}

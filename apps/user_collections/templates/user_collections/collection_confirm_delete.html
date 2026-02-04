@@ -1,0 +1,109 @@
+{% extends 'base.html' %}
+
+{% block title %}Sammlung löschen - Your Media Collection{% endblock %}
+
+{% block content %}
+<div class="delete-page">
+    <div class="delete-container">
+        <h1>Sammlung löschen</h1>
+
+        <div class="warning-box">
+            <span class="warning-icon">⚠️</span>
+            <div>
+                <p><strong>Möchtest du diese Sammlung wirklich löschen?</strong></p>
+                <p class="collection-name">{{ object.name }}</p>
+                <p class="warning-text">
+                    Diese Aktion kann nicht rückgängig gemacht werden.
+                    Die Sammlung und alle zugehörigen Items ({{ object.items.count }}) werden permanent gelöscht.
+                </p>
+            </div>
+        </div>
+
+        <form method="post">
+            {% csrf_token %}
+
+            <div class="form-actions">
+                <button type="submit" class="btn btn-danger">Ja, löschen</button>
+                <a href="{% url 'collections:detail' object.pk %}" class="btn btn-secondary">Abbrechen</a>
+            </div>
+        </form>
+    </div>
+</div>
+
+<style>
+.delete-page {
+    max-width: 600px;
+    margin: 0 auto;
+    padding: 20px;
+}
+
+.delete-container {
+    background: white;
+    border-radius: 8px;
+    padding: 30px;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
+.delete-container h1 {
+    margin-bottom: 30px;
+    color: #2c3e50;
+}
+
+.warning-box {
+    background: #fff3cd;
+    border: 2px solid #ffc107;
+    border-radius: 6px;
+    padding: 20px;
+    margin-bottom: 30px;
+    display: flex;
+    gap: 15px;
+}
+
+.warning-icon {
+    font-size: 32px;
+    flex-shrink: 0;
+}
+
+.warning-box p {
+    margin: 0 0 10px 0;
+}
+
+.warning-box p:last-child {
+    margin-bottom: 0;
+}
+
+.collection-name {
+    font-size: 18px;
+    font-weight: 600;
+    color: #2c3e50;
+}
+
+.warning-text {
+    color: #856404;
+    font-size: 14px;
+}
+
+.form-actions {
+    display: flex;
+    gap: 10px;
+}
+
+.btn-danger {
+    background: #e74c3c;
+    color: white;
+}
+
+.btn-danger:hover {
+    background: #c0392b;
+}
+
+.btn-secondary {
+    background: #95a5a6;
+    color: white;
+}
+
+.btn-secondary:hover {
+    background: #7f8c8d;
+}
+</style>
+{% endblock %}

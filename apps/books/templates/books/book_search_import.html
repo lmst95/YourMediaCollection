@@ -1,0 +1,438 @@
+{% extends 'base.html' %}
+
+{% block title %}Bücher Suchen & Importieren - Your Media Collection{% endblock %}
+
+{% block content %}
+<div class="import-page">
+    <div class="page-header">
+        <h1>Bücher aus DNB importieren</h1>
+        <a href="{% url 'books:list' %}" class="btn btn-secondary">← Zurück zur Übersicht</a>
+    </div>
+
+    <div class="info-box">
+        <h3>📚 Bücher von der Deutschen Nationalbibliothek hinzufügen</h3>
+        <p>Durchsuche die DNB-Datenbank und füge Bücher zu deiner Sammlung hinzu.</p>
+        <p><strong>⚠️ Hinweis:</strong> Es werden nur Bücher mit ISBN und Seitenanzahl angezeigt und können importiert werden.</p>
+        <ul>
+            <li><strong>ISBN:</strong> Suche nach exakter ISBN (z.B. 978-3-446-45873-1)</li>
+            <li><strong>Titel:</strong> Suche nach Buchtitel (z.B. "Python Programming")</li>
+            <li><strong>Autor:</strong> Suche nach Autor im Format "Nachname, Vorname" (z.B. "Beckett, Simon")</li>
+            <li><strong>Stichwort:</strong> Allgemeine Suche nach Stichworten</li>
+        </ul>
+    </div>
+
+    <div class="search-form-container">
+        <form method="post" class="book-search-form">
+            {% csrf_token %}
+
+            <div class="form-group">
+                <label>{{ form.search_type.label }}</label>
+                <div class="radio-group">
+                    {% for radio in form.search_type %}
+                        <label class="radio-option">
+                            {{ radio.tag }}
+                            <span>{{ radio.choice_label }}</span>
+                        </label>
+                    {% endfor %}
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label for="{{ form.query.id_for_label }}">{{ form.query.label }}</label>
+                {{ form.query }}
+                {% if form.query.errors %}
+                    <div class="error">{{ form.query.errors }}</div>
+                {% endif %}
+            </div>
+
+            <div class="form-row">
+                <div class="form-group">
+                    <label for="{{ form.max_results.id_for_label }}">{{ form.max_results.label }}</label>
+                    {{ form.max_results }}
+                    {% if form.max_results.errors %}
+                        <div class="error">{{ form.max_results.errors }}</div>
+                    {% endif %}
+                </div>
+
+                <div class="form-group">
+                    <label for="{{ form.sort_by.id_for_label }}">{{ form.sort_by.label }}</label>
+                    {{ form.sort_by }}
+                    {% if form.sort_by.errors %}
+                        <div class="error">{{ form.sort_by.errors }}</div>
+                    {% endif %}
+                </div>
+            </div>
+
+            <button type="submit" class="btn btn-primary btn-large">🔍 Suchen</button>
+        </form>
+    </div>
+
+    {% if search_performed %}
+        {% if results %}
+            <div class="results-section">
+                <h2>Suchergebnisse ({{ results|length }})</h2>
+                <p class="query-info">Suchanfrage: <code>{{ query }}</code></p>
+
+                <form method="post" action="{% url 'books:import_from_dnb' %}">
+                    {% csrf_token %}
+
+                    <div class="results-list">
+                        {% for book_data in results %}
+                            <div class="result-item {% if book_data.already_exists %}already-exists{% endif %}">
+                                <div class="checkbox-container">
+                                    {% if not book_data.already_exists %}
+                                        <input type="checkbox" name="selected_books" value="{{ forloop.counter0 }}" id="book-{{ forloop.counter0 }}">
+                                    {% else %}
+                                        <input type="checkbox" disabled>
+                                    {% endif %}
+                                </div>
+
+                                <label for="book-{{ forloop.counter0 }}" class="book-result-content">
+                                    <div class="book-icon">📚</div>
+                                    <div class="book-info">
+                                        <h3>{{ book_data.title }}</h3>
+                                        {% if book_data.subtitle %}
+                                            <p class="subtitle">{{ book_data.subtitle }}</p>
+                                        {% endif %}
+
+                                        <div class="book-meta">
+                                            {% if book_data.authors %}
+                                                <span class="meta-item"><strong>Autor(en):</strong> {{ book_data.authors|join:", " }}</span>
+                                            {% endif %}
+                                            {% if book_data.publication_year %}
+                                                <span class="meta-item"><strong>Jahr:</strong> {{ book_data.publication_year }}</span>
+                                            {% endif %}
+                                            {% if book_data.publishers %}
+                                                <span class="meta-item"><strong>Verlag:</strong> {{ book_data.publishers|join:", " }}</span>
+                                            {% endif %}
+                                            {% if book_data.isbn %}
+                                                <span class="meta-item"><strong>ISBN:</strong> {{ book_data.isbn }}</span>
+                                            {% endif %}
+                                            {% if book_data.page_count %}
+                                                <span class="meta-item"><strong>Seiten:</strong> {{ book_data.page_count }}</span>
+                                            {% endif %}
+                                        </div>
+
+                                        {% if book_data.already_exists %}
+                                            <div class="exists-badge">
+                                                ✓ Bereits in deiner Sammlung
+                                                <a href="{% url 'books:detail' book_data.existing_id %}" class="view-link">Ansehen</a>
+                                            </div>
+                                        {% endif %}
+                                    </div>
+                                </label>
+                            </div>
+                        {% endfor %}
+                    </div>
+
+                    <div class="form-actions">
+                        <button type="submit" class="btn btn-primary btn-large">➕ Ausgewählte Bücher importieren</button>
+                        <a href="{% url 'books:search_import' %}" class="btn btn-secondary">Neue Suche</a>
+                    </div>
+                </form>
+            </div>
+        {% else %}
+            <div class="no-results">
+                <h3>Keine Ergebnisse gefunden</h3>
+                <p>Keine Bücher für die Suchanfrage gefunden: <code>{{ query }}</code></p>
+                <p>Versuche es mit:</p>
+                <ul>
+                    <li>Anderen Suchbegriffen</li>
+                    <li>Einem anderen Suchtyp (z.B. Autor statt Titel)</li>
+                    <li>Vereinfachten Begriffen (weniger spezifisch)</li>
+                </ul>
+            </div>
+        {% endif %}
+    {% endif %}
+</div>
+
+<style>
+.import-page {
+    max-width: 1200px;
+    margin: 0 auto;
+}
+
+.page-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 30px;
+}
+
+.page-header h1 {
+    color: #2c3e50;
+}
+
+.info-box {
+    background: #e8f4f8;
+    border-left: 4px solid #3498db;
+    padding: 20px;
+    margin-bottom: 30px;
+    border-radius: 4px;
+}
+
+.info-box h3 {
+    margin-top: 0;
+    color: #2c3e50;
+}
+
+.info-box ul {
+    margin: 10px 0 0 20px;
+}
+
+.info-box li {
+    margin: 5px 0;
+}
+
+.search-form-container {
+    background: white;
+    padding: 30px;
+    border-radius: 8px;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    margin-bottom: 30px;
+}
+
+.book-search-form .form-group {
+    margin-bottom: 25px;
+}
+
+.book-search-form label {
+    display: block;
+    font-weight: 500;
+    margin-bottom: 8px;
+    color: #2c3e50;
+}
+
+.radio-group {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.radio-option {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 10px;
+    background: #f8f9fa;
+    border-radius: 6px;
+    cursor: pointer;
+    transition: background 0.2s;
+}
+
+.radio-option:hover {
+    background: #e9ecef;
+}
+
+.radio-option input[type="radio"] {
+    cursor: pointer;
+}
+
+.form-row {
+    display: flex;
+    gap: 20px;
+}
+
+.form-row .form-group {
+    flex: 1;
+}
+
+.search-input,
+.number-input,
+.sort-select {
+    width: 100%;
+    padding: 12px;
+    border: 2px solid #ddd;
+    border-radius: 6px;
+    font-size: 15px;
+}
+
+.search-input:focus,
+.number-input:focus,
+.sort-select:focus {
+    outline: none;
+    border-color: #3498db;
+}
+
+.btn-large {
+    padding: 14px 28px;
+    font-size: 16px;
+}
+
+.results-section {
+    background: white;
+    padding: 30px;
+    border-radius: 8px;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
+.results-section h2 {
+    margin-top: 0;
+    color: #2c3e50;
+}
+
+.query-info {
+    color: #7f8c8d;
+    margin-bottom: 20px;
+}
+
+.query-info code {
+    background: #f8f9fa;
+    padding: 4px 8px;
+    border-radius: 4px;
+    font-family: monospace;
+}
+
+.results-list {
+    margin: 20px 0;
+}
+
+.result-item {
+    display: flex;
+    gap: 15px;
+    padding: 20px;
+    margin-bottom: 15px;
+    background: #f8f9fa;
+    border-radius: 8px;
+    border: 2px solid transparent;
+    transition: all 0.2s;
+}
+
+.result-item:hover {
+    border-color: #3498db;
+    background: white;
+}
+
+.result-item.already-exists {
+    background: #e8f4e8;
+    opacity: 0.8;
+}
+
+.checkbox-container {
+    display: flex;
+    align-items: flex-start;
+    padding-top: 5px;
+}
+
+.checkbox-container input[type="checkbox"] {
+    width: 20px;
+    height: 20px;
+    cursor: pointer;
+}
+
+.book-result-content {
+    flex: 1;
+    display: flex;
+    gap: 15px;
+    cursor: pointer;
+}
+
+.book-icon {
+    font-size: 48px;
+}
+
+.book-info {
+    flex: 1;
+}
+
+.book-info h3 {
+    margin: 0 0 5px 0;
+    color: #2c3e50;
+    font-size: 18px;
+}
+
+.subtitle {
+    color: #7f8c8d;
+    font-style: italic;
+    margin: 0 0 10px 0;
+}
+
+.book-meta {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 15px;
+    margin-top: 10px;
+}
+
+.meta-item {
+    font-size: 14px;
+    color: #555;
+}
+
+.exists-badge {
+    display: inline-block;
+    margin-top: 10px;
+    padding: 8px 12px;
+    background: #d4edda;
+    color: #155724;
+    border-radius: 6px;
+    font-size: 13px;
+    font-weight: 500;
+}
+
+.view-link {
+    color: #155724;
+    text-decoration: underline;
+    margin-left: 8px;
+}
+
+.form-actions {
+    display: flex;
+    gap: 15px;
+    margin-top: 30px;
+    padding-top: 20px;
+    border-top: 2px solid #ecf0f1;
+}
+
+.no-results {
+    background: white;
+    padding: 40px;
+    border-radius: 8px;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    text-align: center;
+}
+
+.no-results h3 {
+    color: #2c3e50;
+    margin-bottom: 15px;
+}
+
+.no-results p {
+    color: #7f8c8d;
+    margin: 10px 0;
+}
+
+.no-results ul {
+    text-align: left;
+    display: inline-block;
+    margin-top: 20px;
+}
+
+.error {
+    color: #e74c3c;
+    font-size: 14px;
+    margin-top: 5px;
+}
+
+@media (max-width: 768px) {
+    .page-header {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 15px;
+    }
+
+    .form-row {
+        flex-direction: column;
+        gap: 0;
+    }
+
+    .result-item {
+        flex-direction: column;
+    }
+
+    .form-actions {
+        flex-direction: column;
+    }
+}
+</style>
+{% endblock %}

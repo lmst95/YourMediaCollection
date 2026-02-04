@@ -1,0 +1,303 @@
+{% extends 'base.html' %}
+
+{% block title %}Meine Sammlungen - Your Media Collection{% endblock %}
+
+{% block content %}
+<div class="collections-page">
+    <div class="page-header">
+        <h1>Meine Sammlungen</h1>
+        <div class="header-actions">
+            <a href="{% url 'collections:shared_with_me' %}" class="btn btn-outline">Mit mir geteilt</a>
+            <a href="{% url 'collections:create' %}" class="btn">+ Neue Sammlung</a>
+        </div>
+    </div>
+
+    <!-- Tab Navigation -->
+    <div class="tabs">
+        <button class="tab-btn {% if current_tab == 'collections' %}active{% endif %}" onclick="switchTab('collections')">
+            Sammlungen
+        </button>
+        <button class="tab-btn {% if current_tab == 'rated' %}active{% endif %}" onclick="switchTab('rated')">
+            Bewertete Bücher
+            <span class="tab-badge">{{ rated_books.count }}</span>
+        </button>
+        <button class="tab-btn {% if current_tab == 'read' %}active{% endif %}" onclick="switchTab('read')">
+            Gelesene Bücher
+            <span class="tab-badge">{{ read_books.count }}</span>
+        </button>
+    </div>
+
+    <!-- Collections Tab Content -->
+    <div id="collections-tab" class="tab-content {% if current_tab == 'collections' %}active{% endif %}">
+    {% if collections %}
+        <div class="books-grid">
+            {% for collection in collections %}
+            <div class="book-card">
+                <div class="book-icon">
+                    <span class="icon">📁</span>
+                </div>
+                <div class="book-info">
+                    <h3>
+                        <a href="{% url 'collections:detail' collection.pk %}">{{ collection.name }}</a>
+                    </h3>
+                    {% if collection.description %}
+                    <p class="book-subtitle">{{ collection.description|truncatewords:20 }}</p>
+                    {% endif %}
+                    <div class="book-meta">
+                        <span class="meta-item">{{ collection.item_count }} Item{{ collection.item_count|pluralize }}</span>
+                        <span class="meta-item">📅 {{ collection.created_at|date:"d.m.Y" }}</span>
+                    </div>
+                </div>
+                <div class="book-actions">
+                    <a href="{% url 'collections:detail' collection.pk %}" class="btn btn-sm btn-outline">Details</a>
+                    <a href="{% url 'collections:update' collection.pk %}" class="btn btn-sm btn-outline">Bearbeiten</a>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+
+        {% if is_paginated %}
+        <div class="pagination">
+            {% if page_obj.has_previous %}
+                <a href="?page={{ page_obj.previous_page_number }}" class="btn btn-outline">← Zurück</a>
+            {% endif %}
+            <span class="page-info">Seite {{ page_obj.number }} von {{ page_obj.paginator.num_pages }}</span>
+            {% if page_obj.has_next %}
+                <a href="?page={{ page_obj.next_page_number }}" class="btn btn-outline">Weiter →</a>
+            {% endif %}
+        </div>
+        {% endif %}
+    {% else %}
+        <div class="empty-state">
+            <div class="empty-icon">📁</div>
+            <h3>Keine Sammlungen vorhanden</h3>
+            <p>Erstelle deine erste Sammlung, um Bücher und Dokumente zu organisieren.</p>
+            <a href="{% url 'collections:create' %}" class="btn">Erste Sammlung erstellen</a>
+        </div>
+    {% endif %}
+    </div>
+
+    <!-- Rated Books Tab Content -->
+    <div id="rated-tab" class="tab-content {% if current_tab == 'rated' %}active{% endif %}">
+        {% if rated_books %}
+            <div class="books-grid">
+                {% for rating in rated_books %}
+                <div class="book-card">
+                    <div class="book-icon">
+                        <span class="icon">⭐</span>
+                    </div>
+                    <div class="book-info">
+                        <h3>
+                            <a href="{% url 'books:detail' rating.book.pk %}">{{ rating.book.title }}</a>
+                        </h3>
+                        {% if rating.book.authors %}
+                        <p class="book-authors">von {{ rating.book.authors|join:", " }}</p>
+                        {% endif %}
+                        {% if rating.review_text %}
+                        <p class="book-subtitle">{{ rating.review_text|truncatewords:30 }}</p>
+                        {% endif %}
+                        <div class="book-meta">
+                            <span class="meta-item">⭐ {{ rating.rating }}/5</span>
+                            <span class="meta-item">📅 {{ rating.updated_at|date:"d.m.Y" }}</span>
+                        </div>
+                    </div>
+                    <div class="book-actions">
+                        <a href="{% url 'books:detail' rating.book.pk %}" class="btn btn-sm btn-outline">Details</a>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+        {% else %}
+            <div class="empty-state">
+                <div class="empty-icon">⭐</div>
+                <h3>Keine bewerteten Bücher</h3>
+                <p>Du hast noch keine Bücher bewertet.</p>
+                <a href="{% url 'books:list' %}" class="btn">Bücher durchsuchen</a>
+            </div>
+        {% endif %}
+    </div>
+
+    <!-- Read Books Tab Content -->
+    <div id="read-tab" class="tab-content {% if current_tab == 'read' %}active{% endif %}">
+        {% if read_books %}
+            <div class="books-grid">
+                {% for read_status in read_books %}
+                <div class="book-card">
+                    <div class="book-icon">
+                        <span class="icon">✅</span>
+                    </div>
+                    <div class="book-info">
+                        <h3>
+                            <a href="{% url 'books:detail' read_status.book.pk %}">{{ read_status.book.title }}</a>
+                        </h3>
+                        {% if read_status.book.authors %}
+                        <p class="book-authors">von {{ read_status.book.authors|join:", " }}</p>
+                        {% endif %}
+                        <div class="book-meta">
+                            {% if read_status.read_date %}
+                            <span class="meta-item">📅 Gelesen: {{ read_status.read_date|date:"d.m.Y" }}</span>
+                            {% endif %}
+                            {% if read_status.book.average_rating > 0 %}
+                            <span class="meta-item">⭐ {{ read_status.book.average_rating }}/5.0</span>
+                            {% endif %}
+                        </div>
+                    </div>
+                    <div class="book-actions">
+                        <a href="{% url 'books:detail' read_status.book.pk %}" class="btn btn-sm btn-outline">Details</a>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+        {% else %}
+            <div class="empty-state">
+                <div class="empty-icon">✅</div>
+                <h3>Keine gelesenen Bücher</h3>
+                <p>Du hast noch keine Bücher als gelesen markiert.</p>
+                <a href="{% url 'books:list' %}" class="btn">Bücher durchsuchen</a>
+            </div>
+        {% endif %}
+    </div>
+</div>
+
+<style>
+.collections-page {
+    max-width: 1200px;
+    margin: 0 auto;
+}
+
+.header-actions {
+    display: flex;
+    gap: var(--space-sm);
+}
+
+/* Tabs */
+.tabs {
+    display: flex;
+    gap: var(--space-sm);
+    margin-bottom: var(--space-xl);
+    border-bottom: 2px solid var(--color-border);
+    padding-bottom: var(--space-sm);
+}
+
+.tab-btn {
+    padding: var(--space-sm) var(--space-lg);
+    background: none;
+    border: none;
+    border-bottom: 3px solid transparent;
+    cursor: pointer;
+    font-size: 0.9375rem;
+    font-weight: 600;
+    color: var(--color-text-muted);
+    transition: all var(--transition-normal);
+    display: flex;
+    align-items: center;
+    gap: var(--space-sm);
+    font-family: inherit;
+}
+
+.tab-btn:hover {
+    color: var(--color-dark);
+    background: var(--color-light);
+    border-radius: var(--radius-sm) var(--radius-sm) 0 0;
+}
+
+.tab-btn.active {
+    color: var(--accent-1);
+    border-bottom-color: var(--accent-1);
+}
+
+.tab-badge {
+    background: var(--gradient-primary);
+    color: white;
+    padding: 2px 8px;
+    border-radius: var(--radius-full);
+    font-size: 0.75rem;
+    font-weight: 600;
+}
+
+.tab-content {
+    display: none;
+}
+
+.tab-content.active {
+    display: block;
+    animation: fadeIn var(--transition-normal);
+}
+
+@media (max-width: 768px) {
+    .page-header {
+        flex-direction: column;
+        align-items: flex-start;
+    }
+
+    .header-actions {
+        width: 100%;
+    }
+
+    .header-actions .btn {
+        flex: 1;
+        text-align: center;
+    }
+
+    .tabs {
+        overflow-x: auto;
+        -webkit-overflow-scrolling: touch;
+    }
+
+    .tab-btn {
+        white-space: nowrap;
+        flex-shrink: 0;
+    }
+}
+</style>
+
+<script>
+function switchTab(tabName) {
+    // Remove active class from all tabs and contents
+    document.querySelectorAll('.tab-btn').forEach(btn => {
+        btn.classList.remove('active');
+    });
+    document.querySelectorAll('.tab-content').forEach(content => {
+        content.classList.remove('active');
+    });
+
+    // Add active class to selected tab and content
+    event.target.closest('.tab-btn').classList.add('active');
+    document.getElementById(tabName + '-tab').classList.add('active');
+
+    // Update URL without reload
+    const url = new URL(window.location);
+    url.searchParams.set('tab', tabName);
+    window.history.pushState({}, '', url);
+}
+
+// On page load, activate the correct tab based on URL parameter
+document.addEventListener('DOMContentLoaded', function() {
+    const urlParams = new URLSearchParams(window.location.search);
+    const tab = urlParams.get('tab') || 'collections';
+
+    // Remove all active classes first
+    document.querySelectorAll('.tab-btn').forEach(btn => {
+        btn.classList.remove('active');
+    });
+    document.querySelectorAll('.tab-content').forEach(content => {
+        content.classList.remove('active');
+    });
+
+    // Activate the correct tab
+    const tabButtons = document.querySelectorAll('.tab-btn');
+    if (tab === 'rated' && tabButtons[1]) {
+        tabButtons[1].classList.add('active');
+    } else if (tab === 'read' && tabButtons[2]) {
+        tabButtons[2].classList.add('active');
+    } else if (tabButtons[0]) {
+        tabButtons[0].classList.add('active');
+    }
+
+    const tabContent = document.getElementById(tab + '-tab');
+    if (tabContent) {
+        tabContent.classList.add('active');
+    }
+});
+</script>
+{% endblock %}

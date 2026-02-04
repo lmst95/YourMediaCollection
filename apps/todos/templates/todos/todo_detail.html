@@ -1,0 +1,330 @@
+{% extends 'base.html' %}
+
+{% block title %}{{ todo.title }} - Your Media Collection{% endblock %}
+
+{% block content %}
+<div class="detail-page">
+    <div class="detail-header">
+        <h1>{{ todo.title }}</h1>
+        <div class="actions">
+            <a href="{% url 'todos:update' todo.pk %}" class="btn">Bearbeiten</a>
+            <a href="{% url 'todos:delete' todo.pk %}" class="btn btn-danger">Löschen</a>
+        </div>
+    </div>
+
+    <div class="detail-content">
+        <div class="info-section">
+            <h2>Details</h2>
+
+            <div class="info-grid">
+                <div class="info-item">
+                    <label>Status</label>
+                    <span class="status status-{{ todo.status|lower }}">{{ todo.get_status_display }}</span>
+                </div>
+
+                {% if todo.due_date %}
+                    <div class="info-item">
+                        <label>Fälligkeitsdatum</label>
+                        <span>{{ todo.due_date|date:"d.m.Y" }}</span>
+                    </div>
+                {% endif %}
+
+                <div class="info-item">
+                    <label>Erstellt</label>
+                    <span>{{ todo.created_at|date:"d.m.Y H:i" }}</span>
+                </div>
+
+                <div class="info-item">
+                    <label>Zuletzt aktualisiert</label>
+                    <span>{{ todo.updated_at|date:"d.m.Y H:i" }}</span>
+                </div>
+
+                {% if todo.completed_at %}
+                    <div class="info-item">
+                        <label>Erledigt am</label>
+                        <span>{{ todo.completed_at|date:"d.m.Y H:i" }}</span>
+                    </div>
+                {% endif %}
+            </div>
+
+            {% if todo.description %}
+                <div class="description-section">
+                    <h3>Beschreibung</h3>
+                    <p>{{ todo.description|linebreaks }}</p>
+                </div>
+            {% endif %}
+        </div>
+
+        {% if todo.linked_items.all %}
+            <div class="linked-section">
+                <h2>Verknüpfungen ({{ todo.linked_items.count }})</h2>
+
+                <div class="linked-list">
+                    {% for item in todo.linked_items.all %}
+                        {% if item.content_type.model == 'book' %}
+                            <a href="{% url 'books:detail' item.object_id %}" class="linked-item">
+                                <div class="item-icon">
+                                    <span class="icon">📚</span>
+                                </div>
+                                <div class="item-info">
+                                    <div class="item-header">
+                                        <span class="item-type-label">Buch</span>
+                                    </div>
+                                    <strong>{{ item.content_object }}</strong>
+                                    <small>Verknüpft am {{ item.linked_at|date:"d.m.Y H:i" }}</small>
+                                </div>
+                            </a>
+                        {% elif item.content_type.model == 'document' %}
+                            <a href="{% url 'documents:detail' item.object_id %}" class="linked-item">
+                                <div class="item-icon">
+                                    <span class="icon">📄</span>
+                                </div>
+                                <div class="item-info">
+                                    <div class="item-header">
+                                        <span class="item-type-label">Dokument</span>
+                                    </div>
+                                    <strong>{{ item.content_object }}</strong>
+                                    <small>Verknüpft am {{ item.linked_at|date:"d.m.Y H:i" }}</small>
+                                </div>
+                            </a>
+                        {% elif item.content_type.model == 'collection' %}
+                            <a href="{% url 'collections:detail' item.object_id %}" class="linked-item">
+                                <div class="item-icon">
+                                    <span class="icon">📁</span>
+                                </div>
+                                <div class="item-info">
+                                    <div class="item-header">
+                                        <span class="item-type-label">Sammlung</span>
+                                    </div>
+                                    <strong>{{ item.content_object }}</strong>
+                                    <small>Verknüpft am {{ item.linked_at|date:"d.m.Y H:i" }}</small>
+                                </div>
+                            </a>
+                        {% else %}
+                            <div class="linked-item">
+                                <div class="item-icon">
+                                    <span class="icon">🔗</span>
+                                </div>
+                                <div class="item-info">
+                                    <div class="item-header">
+                                        <span class="item-type-label">{{ item.content_type.model }}</span>
+                                    </div>
+                                    <strong>{{ item.content_object }}</strong>
+                                    <small>Verknüpft am {{ item.linked_at|date:"d.m.Y H:i" }}</small>
+                                </div>
+                            </div>
+                        {% endif %}
+                    {% endfor %}
+                </div>
+            </div>
+        {% endif %}
+
+        <div class="quick-actions">
+            <form method="post" action="{% url 'todos:toggle' todo.pk %}">
+                {% csrf_token %}
+                <button type="submit" class="btn btn-primary">
+                    {% if todo.status == 'COMPLETED' %}
+                        Als unerledigt markieren
+                    {% else %}
+                        Als erledigt markieren
+                    {% endif %}
+                </button>
+            </form>
+
+            <a href="{% url 'todos:list' %}" class="btn btn-secondary">Zurück zur Liste</a>
+        </div>
+    </div>
+</div>
+
+<style>
+.detail-page {
+    max-width: 900px;
+    margin: 0 auto;
+}
+
+.detail-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 30px;
+    padding-bottom: 20px;
+    border-bottom: 2px solid #ecf0f1;
+}
+
+.detail-header h1 {
+    margin: 0;
+    color: #2c3e50;
+}
+
+.actions {
+    display: flex;
+    gap: 10px;
+}
+
+.detail-content {
+    background: white;
+    border-radius: 8px;
+    padding: 30px;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
+.info-section h2,
+.linked-section h2 {
+    margin: 0 0 20px 0;
+    color: #2c3e50;
+    font-size: 20px;
+}
+
+.info-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 20px;
+    margin-bottom: 30px;
+}
+
+.info-item {
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+}
+
+.info-item label {
+    font-size: 12px;
+    color: #7f8c8d;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.info-item span {
+    font-size: 16px;
+    color: #2c3e50;
+}
+
+.status {
+    display: inline-block;
+    padding: 6px 14px;
+    border-radius: 14px;
+    font-size: 13px;
+    font-weight: 500;
+}
+
+.status-planned {
+    background: #ecf0f1;
+    color: #7f8c8d;
+}
+
+.status-in_progress {
+    background: #fff3cd;
+    color: #856404;
+}
+
+.status-completed {
+    background: #d4edda;
+    color: #155724;
+}
+
+.description-section {
+    margin-top: 30px;
+    padding-top: 30px;
+    border-top: 1px solid #ecf0f1;
+}
+
+.description-section h3 {
+    margin: 0 0 15px 0;
+    color: #2c3e50;
+}
+
+.description-section p {
+    color: #555;
+    line-height: 1.6;
+}
+
+.linked-section {
+    margin-top: 30px;
+    padding-top: 30px;
+    border-top: 1px solid #ecf0f1;
+}
+
+.linked-list {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.linked-item {
+    display: flex;
+    gap: 15px;
+    padding: 15px;
+    background: #f8f9fa;
+    border-radius: 6px;
+    border-left: 3px solid #3498db;
+    transition: all 0.2s ease;
+    text-decoration: none;
+    color: inherit;
+    cursor: pointer;
+}
+
+.linked-item:hover {
+    background: #e9ecef;
+    border-left-color: #2980b9;
+    transform: translateX(2px);
+    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+}
+
+.item-icon {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.item-icon .icon {
+    font-size: 32px;
+}
+
+.item-info {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+}
+
+.item-header {
+    margin-bottom: 5px;
+}
+
+.item-type-label {
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    color: #7f8c8d;
+    font-weight: 600;
+}
+
+.item-info strong {
+    color: #2c3e50;
+    font-size: 15px;
+}
+
+.item-info small {
+    color: #95a5a6;
+    font-size: 12px;
+}
+
+.quick-actions {
+    display: flex;
+    gap: 10px;
+    margin-top: 30px;
+    padding-top: 30px;
+    border-top: 1px solid #ecf0f1;
+}
+
+.btn-primary {
+    background: #3498db;
+    color: white;
+}
+
+.btn-primary:hover {
+    background: #2980b9;
+}
+</style>
+{% endblock %}

@@ -1,0 +1,217 @@
+{% extends 'base.html' %}
+
+{% block title %}Bücher - Your Media Collection{% endblock %}
+
+{% block content %}
+<div class="books-page">
+    <div class="page-header">
+        <h1>Bücher-Bibliothek</h1>
+        {% if user.is_authenticated %}
+            <a href="{% url 'books:search_import' %}" class="btn">+ Bücher importieren</a>
+        {% endif %}
+    </div>
+
+    <!-- Search and Filters -->
+    <div class="filters-section">
+        <form method="get" class="filters-form">
+            <div class="search-row">
+                <div class="search-input-group">
+                    <input
+                        type="text"
+                        name="search"
+                        placeholder="Suche nach Titel, Autor, ISBN..."
+                        value="{{ search_query }}"
+                        class="search-input"
+                    >
+                    <button type="submit" class="btn">Suchen</button>
+                </div>
+            </div>
+
+            <div class="filter-row">
+                <div class="filter-group">
+                    <label for="year">Jahr</label>
+                    <select name="year" id="year" class="filter-select">
+                        <option value="">Alle Jahre</option>
+                        {% for year in available_years %}
+                            <option value="{{ year }}" {% if year_filter == year|stringformat:"s" %}selected{% endif %}>
+                                {{ year }}
+                            </option>
+                        {% endfor %}
+                    </select>
+                </div>
+
+                <div class="filter-group">
+                    <label for="category">Kategorie</label>
+                    <input
+                        type="text"
+                        name="category"
+                        id="category"
+                        placeholder="z.B. Roman, Sachbuch..."
+                        value="{{ category_filter }}"
+                        class="filter-input"
+                    >
+                </div>
+
+                <div class="filter-group">
+                    <label for="sort">Sortierung</label>
+                    <select name="sort" id="sort" class="filter-select">
+                        <option value="-created_at" {% if sort_value == "-created_at" %}selected{% endif %}>Neueste zuerst</option>
+                        <option value="title" {% if sort_value == "title" %}selected{% endif %}>Titel (A-Z)</option>
+                        <option value="-title" {% if sort_value == "-title" %}selected{% endif %}>Titel (Z-A)</option>
+                        <option value="-publication_year" {% if sort_value == "-publication_year" %}selected{% endif %}>Erscheinungsjahr (neu-alt)</option>
+                        <option value="publication_year" {% if sort_value == "publication_year" %}selected{% endif %}>Erscheinungsjahr (alt-neu)</option>
+                        <option value="-average_rating" {% if sort_value == "-average_rating" %}selected{% endif %}>Bewertung (höchste zuerst)</option>
+                    </select>
+                </div>
+
+                <div class="filter-actions">
+                    <a href="{% url 'books:list' %}" class="btn btn-outline btn-sm">Filter zurücksetzen</a>
+                </div>
+            </div>
+        </form>
+    </div>
+
+    <!-- Results info -->
+    <div class="results-info">
+        <p>{{ paginator.count }} Buch{% if paginator.count != 1 %}er{% endif %} gefunden</p>
+    </div>
+
+    <!-- Books Grid -->
+    <div class="books-grid">
+        {% for book in books %}
+            <div class="book-card">
+                <div class="book-icon">
+                    <span class="icon">📚</span>
+                </div>
+                <div class="book-info">
+                    <h3>
+                        <a href="{% url 'books:detail' book.pk %}">{{ book.title }}</a>
+                    </h3>
+                    {% if book.subtitle %}
+                        <p class="book-subtitle">{{ book.subtitle }}</p>
+                    {% endif %}
+
+                    {% if book.authors %}
+                        <p class="book-authors">
+                            <strong>Autor(en):</strong> {{ book.authors|join:", " }}
+                        </p>
+                    {% endif %}
+
+                    <div class="book-meta">
+                        {% if book.publication_year %}
+                            <span class="meta-item">📅 {{ book.publication_year }}</span>
+                        {% endif %}
+                        {% if book.page_count %}
+                            <span class="meta-item">📄 {{ book.page_count }} Seiten</span>
+                        {% endif %}
+                        {% if book.rating_count > 0 %}
+                            <span class="meta-item">⭐ {{ book.average_rating|floatformat:1 }} ({{ book.rating_count }})</span>
+                        {% endif %}
+                    </div>
+
+                    {% if book.categories %}
+                        <div class="book-categories">
+                            {% for category in book.categories|slice:":3" %}
+                                <span class="category-tag">{{ category }}</span>
+                            {% endfor %}
+                        </div>
+                    {% endif %}
+                </div>
+
+                <div class="book-actions">
+                    <a href="{% url 'books:detail' book.pk %}" class="btn btn-sm btn-outline">Details</a>
+                    {% if user.is_authenticated %}
+                        <div class="add-collection-btn">
+                            <button class="btn btn-sm" onclick="toggleDropdown({{ book.pk }})">
+                                + Sammlung
+                            </button>
+                            <div class="dropdown-menu" id="dropdown-{{ book.pk }}" style="display: none;">
+                                {% for collection in user_collections %}
+                                    <form method="post" action="{% url 'collections:add_item' collection.pk book_content_type_id book.pk %}" style="margin: 0;">
+                                        {% csrf_token %}
+                                        <button type="submit" class="dropdown-item">
+                                            {{ collection.name }}
+                                        </button>
+                                    </form>
+                                {% empty %}
+                                    <div class="dropdown-item-text">
+                                        Keine Sammlungen
+                                    </div>
+                                    <a href="{% url 'collections:create' %}" class="dropdown-item">
+                                        Neue erstellen
+                                    </a>
+                                {% endfor %}
+                            </div>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+        {% empty %}
+            <div class="empty-state">
+                <div class="empty-icon">📚</div>
+                <h3>Keine Bücher gefunden</h3>
+                {% if search_query or year_filter or category_filter %}
+                    <p>Keine Bücher entsprechen deinen Suchkriterien.</p>
+                    <div class="empty-actions">
+                        <a href="{% url 'books:list' %}" class="btn btn-outline">Filter zurücksetzen</a>
+                        {% if user.is_authenticated %}
+                            <a href="{% url 'books:search_import' %}" class="btn">Buch importieren</a>
+                        {% endif %}
+                    </div>
+                {% else %}
+                    <p>Du hast noch keine Bücher in deiner Datenbank.</p>
+                    {% if user.is_authenticated %}
+                        <p>Beginne damit, Bücher aus der Deutschen Nationalbibliothek zu importieren!</p>
+                        <a href="{% url 'books:search_import' %}" class="btn btn-lg">+ Bücher importieren</a>
+                    {% endif %}
+                {% endif %}
+            </div>
+        {% endfor %}
+    </div>
+
+    <!-- Pagination -->
+    {% if is_paginated %}
+        <div class="pagination">
+            {% if page_obj.has_previous %}
+                <a href="?page={{ page_obj.previous_page_number }}{% if search_query %}&search={{ search_query }}{% endif %}{% if year_filter %}&year={{ year_filter }}{% endif %}{% if category_filter %}&category={{ category_filter }}{% endif %}{% if sort_value %}&sort={{ sort_value }}{% endif %}" class="btn btn-outline">← Zurück</a>
+            {% endif %}
+
+            <span class="page-info">
+                Seite {{ page_obj.number }} von {{ page_obj.paginator.num_pages }}
+            </span>
+
+            {% if page_obj.has_next %}
+                <a href="?page={{ page_obj.next_page_number }}{% if search_query %}&search={{ search_query }}{% endif %}{% if year_filter %}&year={{ year_filter }}{% endif %}{% if category_filter %}&category={{ category_filter }}{% endif %}{% if sort_value %}&sort={{ sort_value }}{% endif %}" class="btn btn-outline">Weiter →</a>
+            {% endif %}
+        </div>
+    {% endif %}
+</div>
+
+<style>
+.books-page {
+    max-width: 1400px;
+    margin: 0 auto;
+}
+
+.filter-actions {
+    display: flex;
+    align-items: end;
+}
+
+@media (max-width: 768px) {
+    .page-header {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 15px;
+    }
+
+    .filter-row {
+        grid-template-columns: 1fr;
+    }
+
+    .search-input-group {
+        flex-direction: column;
+    }
+}
+</style>
+{% endblock %}

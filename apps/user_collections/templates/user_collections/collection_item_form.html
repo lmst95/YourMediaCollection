@@ -1,0 +1,285 @@
+{% extends 'base.html' %}
+
+{% block title %}Item bearbeiten - Your Media Collection{% endblock %}
+
+{% block content %}
+<div class="form-page">
+    <div class="form-container">
+        <h1>Item bearbeiten</h1>
+
+        <div class="item-info">
+            <strong>{{ object.content_object }}</strong>
+            <span class="item-type">
+                {% if object.content_type.model == 'book' %}
+                    📚 Buch
+                {% elif object.content_type.model == 'document' %}
+                    📄 Dokument
+                {% else %}
+                    🔗 {{ object.content_type.model }}
+                {% endif %}
+            </span>
+        </div>
+
+        <form method="post">
+            {% csrf_token %}
+
+            <div class="form-group">
+                <label for="{{ form.statuses_field.id_for_label }}">Status (mehrere auswählbar)</label>
+                {{ form.statuses_field }}
+                {% if form.statuses_field.errors %}
+                    <div class="error-message">
+                        {{ form.statuses_field.errors }}
+                    </div>
+                {% endif %}
+                <small class="form-hint">Wähle alle zutreffenden Status aus.</small>
+            </div>
+
+            <div class="borrowing-section" id="borrowing-section">
+                <h3>Ausleihe-Details</h3>
+                <p class="section-note">Nur relevant für Status "Ausgeliehen von" oder "Ausgeliehen an"</p>
+
+                <div class="form-group">
+                    <label for="{{ form.borrowed_person_name.id_for_label }}">Person</label>
+                    {{ form.borrowed_person_name }}
+                    {% if form.borrowed_person_name.errors %}
+                        <div class="error-message">
+                            {{ form.borrowed_person_name.errors }}
+                        </div>
+                    {% endif %}
+                </div>
+
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="{{ form.borrowed_date.id_for_label }}">Ausgeliehen am</label>
+                        {{ form.borrowed_date }}
+                        {% if form.borrowed_date.errors %}
+                            <div class="error-message">
+                                {{ form.borrowed_date.errors }}
+                            </div>
+                        {% endif %}
+                    </div>
+
+                    <div class="form-group">
+                        <label for="{{ form.return_date.id_for_label }}">Rückgabe bis</label>
+                        {{ form.return_date }}
+                        {% if form.return_date.errors %}
+                            <div class="error-message">
+                                {{ form.return_date.errors }}
+                            </div>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label for="{{ form.personal_note.id_for_label }}">Persönliche Notiz</label>
+                {{ form.personal_note }}
+                {% if form.personal_note.errors %}
+                    <div class="error-message">
+                        {{ form.personal_note.errors }}
+                    </div>
+                {% endif %}
+            </div>
+
+            <div class="form-actions">
+                <button type="submit" class="btn btn-primary">Aktualisieren</button>
+                <a href="{% url 'collections:detail' object.collection.pk %}" class="btn btn-secondary">Abbrechen</a>
+            </div>
+        </form>
+    </div>
+</div>
+
+<style>
+.form-page {
+    max-width: 800px;
+    margin: 0 auto;
+    padding: 20px;
+}
+
+.form-container {
+    background: white;
+    border-radius: 8px;
+    padding: 30px;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
+.form-container h1 {
+    margin-bottom: 20px;
+    color: #2c3e50;
+}
+
+.item-info {
+    background: #f8f9fa;
+    padding: 15px;
+    border-radius: 6px;
+    margin-bottom: 30px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.item-type {
+    background: white;
+    padding: 6px 12px;
+    border-radius: 4px;
+    font-size: 13px;
+    font-weight: 500;
+}
+
+.form-group {
+    margin-bottom: 20px;
+}
+
+.form-group label {
+    display: block;
+    margin-bottom: 8px;
+    font-weight: 500;
+    color: #2c3e50;
+}
+
+.form-input {
+    width: 100%;
+    padding: 10px;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    font-size: 14px;
+}
+
+.form-input:focus {
+    outline: none;
+    border-color: #3498db;
+    box-shadow: 0 0 0 3px rgba(52, 152, 219, 0.1);
+}
+
+.form-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 20px;
+}
+
+.borrowing-section {
+    background: #f0f8ff;
+    border: 1px solid #bee5eb;
+    border-radius: 6px;
+    padding: 20px;
+    margin-bottom: 20px;
+}
+
+.borrowing-section h3 {
+    margin: 0 0 10px 0;
+    color: #2c3e50;
+    font-size: 16px;
+}
+
+.section-note {
+    color: #7f8c8d;
+    font-size: 13px;
+    margin-bottom: 15px;
+}
+
+.form-hint {
+    display: block;
+    color: #7f8c8d;
+    font-size: 12px;
+    margin-top: 5px;
+}
+
+/* Checkbox styling for statuses */
+#id_statuses_field {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+#id_statuses_field li {
+    list-style: none;
+}
+
+#id_statuses_field label {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 8px 12px;
+    background: #f8f9fa;
+    border-radius: 6px;
+    cursor: pointer;
+    transition: background 0.2s;
+    font-weight: normal;
+}
+
+#id_statuses_field label:hover {
+    background: #e9ecef;
+}
+
+#id_statuses_field input[type="checkbox"] {
+    width: auto;
+    cursor: pointer;
+}
+
+.error-message {
+    color: #e74c3c;
+    font-size: 14px;
+    margin-top: 5px;
+}
+
+.form-actions {
+    display: flex;
+    gap: 10px;
+    margin-top: 30px;
+    padding-top: 20px;
+    border-top: 1px solid #ecf0f1;
+}
+
+.btn-primary {
+    background: #3498db;
+    color: white;
+}
+
+.btn-primary:hover {
+    background: #2980b9;
+}
+
+.btn-secondary {
+    background: #95a5a6;
+    color: white;
+}
+
+.btn-secondary:hover {
+    background: #7f8c8d;
+}
+
+@media (max-width: 768px) {
+    .form-row {
+        grid-template-columns: 1fr;
+    }
+}
+</style>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const statusCheckboxes = document.querySelectorAll('input[name="statuses_field"]');
+    const borrowingSection = document.getElementById('borrowing-section');
+
+    function toggleBorrowingSection() {
+        let showBorrowing = false;
+        statusCheckboxes.forEach(function(checkbox) {
+            if (checkbox.checked && (checkbox.value === 'BORROWED_FROM' || checkbox.value === 'BORROWED_TO')) {
+                showBorrowing = true;
+            }
+        });
+
+        if (showBorrowing) {
+            borrowingSection.style.display = 'block';
+        } else {
+            borrowingSection.style.display = 'none';
+        }
+    }
+
+    statusCheckboxes.forEach(function(checkbox) {
+        checkbox.addEventListener('change', toggleBorrowingSection);
+    });
+
+    toggleBorrowingSection(); // Initial check
+});
+</script>
+{% endblock %}
