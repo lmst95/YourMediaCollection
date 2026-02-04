@@ -8,11 +8,11 @@
         <h1>{{ book.title }}</h1>
         <div class="header-actions">
             {% if user.is_authenticated and user_collections %}
-            <div class="add-to-collection-dropdown">
-                <button class="btn btn-primary" onclick="toggleDropdown()">
+            <div class="add-collection-btn">
+                <button class="btn btn-primary" onclick="toggleDropdown({{ book.pk }})">
                     ➕ Zu Sammlung hinzufügen
                 </button>
-                <div class="dropdown-menu" id="collectionDropdown">
+                <div class="dropdown-menu" id="dropdown-{{ book.pk }}" style="display: none;">
                     {% for collection in user_collections %}
                     <form method="post" action="{% url 'collections:add_item' collection.pk book_content_type_id book.pk %}" class="dropdown-form">
                         {% csrf_token %}
@@ -266,10 +266,6 @@
     align-items: center;
 }
 
-.add-to-collection-dropdown {
-    position: relative;
-}
-
 .dropdown-menu {
     display: none;
     position: absolute;
@@ -284,10 +280,6 @@
     max-height: 400px;
     overflow-y: auto;
     z-index: 1000;
-}
-
-.dropdown-menu.show {
-    display: block;
 }
 
 .dropdown-form {
@@ -476,20 +468,4 @@
 }
 </style>
 
-<script>
-function toggleDropdown() {
-    const dropdown = document.getElementById('collectionDropdown');
-    dropdown.classList.toggle('show');
-}
-
-// Close dropdown when clicking outside
-document.addEventListener('click', function(event) {
-    const dropdown = document.getElementById('collectionDropdown');
-    const button = event.target.closest('.add-to-collection-dropdown');
-
-    if (!button && dropdown) {
-        dropdown.classList.remove('show');
-    }
-});
-</script>
 {% endblock %}

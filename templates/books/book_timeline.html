@@ -6,24 +6,101 @@
 {% block extra_css %}
 <style>
 /* ----------------------------------------
-   Reading Timeline — Apple-inspired
+   Reading Timeline — Premium Design
    ---------------------------------------- */
-.reading-timeline {
-    position: relative;
-    max-width: 960px;
-    margin: 0 auto;
-    padding: var(--space-2xl) var(--space-lg);
+
+/* Scroll progress bar */
+.tl-progress {
+    position: fixed;
+    top: 0;
+    left: 0;
+    height: 3px;
+    background: var(--gradient-primary);
+    z-index: 9999;
+    width: 0%;
+    transition: width 0.1s linear;
 }
 
-/* Vertical center line */
+/* ---- Hero header ---- */
+.tl-hero {
+    max-width: 720px;
+    margin: 0 auto;
+    padding: 64px var(--space-lg) 48px;
+    text-align: center;
+}
+
+.tl-hero h1 {
+    font-size: 3.25rem;
+    font-weight: 800;
+    letter-spacing: -0.05em;
+    line-height: 1.05;
+    color: var(--color-dark);
+    margin-bottom: var(--space-md);
+}
+
+.tl-hero-sub {
+    font-size: 1.125rem;
+    color: var(--color-text-muted);
+    line-height: 1.5;
+    margin-bottom: 40px;
+}
+
+/* Stats row */
+.tl-stats {
+    display: flex;
+    justify-content: center;
+    gap: 48px;
+}
+
+.tl-stat {
+    text-align: center;
+}
+
+.tl-stat-value {
+    display: block;
+    font-size: 2rem;
+    font-weight: 800;
+    letter-spacing: -0.03em;
+    background: var(--gradient-primary);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    line-height: 1.2;
+}
+
+.tl-stat-label {
+    display: block;
+    font-size: 0.75rem;
+    font-weight: 500;
+    color: var(--color-text-muted);
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    margin-top: 4px;
+}
+
+/* ---- Timeline container ---- */
+.reading-timeline {
+    position: relative;
+    max-width: 1000px;
+    margin: 0 auto;
+    padding: 0 var(--space-lg) 80px;
+}
+
+/* Vertical center line — gradient fade */
 .reading-timeline::before {
     content: '';
     position: absolute;
     top: 0;
-    bottom: 0;
+    bottom: 80px;
     left: 50%;
-    width: 2px;
-    background: var(--color-border);
+    width: 1px;
+    background: linear-gradient(
+        to bottom,
+        transparent 0%,
+        var(--color-border) 3%,
+        var(--color-border) 97%,
+        transparent 100%
+    );
     transform: translateX(-50%);
 }
 
@@ -33,268 +110,479 @@
     top: 0;
     z-index: 20;
     text-align: center;
-    padding: var(--space-lg) 0;
-    margin-bottom: var(--space-xl);
+    padding: var(--space-lg) 0 var(--space-xl);
 }
 
-.tl-year-header span {
-    display: inline-block;
-    background: var(--color-white);
-    color: var(--color-dark);
-    font-size: 1.75rem;
-    font-weight: 800;
-    letter-spacing: -0.03em;
-    padding: var(--space-sm) var(--space-xl);
+.tl-year-pill {
+    display: inline-flex;
+    align-items: center;
+    gap: 12px;
+    background: rgba(255, 255, 255, 0.92);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    padding: 10px 28px;
     border-radius: var(--radius-full);
-    box-shadow: 0 2px 12px rgba(0, 0, 0, 0.06);
-    border: 1px solid var(--color-border);
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04), 0 8px 24px rgba(0, 0, 0, 0.06);
+    border: 1px solid rgba(0, 0, 0, 0.06);
 }
 
-.tl-year-header .tl-year-count {
-    display: block;
+.tl-year-pill .tl-year-num {
+    font-size: 1.375rem;
+    font-weight: 800;
+    color: var(--color-dark);
+    letter-spacing: -0.03em;
+}
+
+.tl-year-pill .tl-year-divider {
+    width: 1px;
+    height: 20px;
+    background: var(--color-border);
+}
+
+.tl-year-pill .tl-year-count {
     font-size: 0.8125rem;
     font-weight: 500;
     color: var(--color-text-muted);
-    margin-top: 2px;
-    letter-spacing: 0;
 }
 
-/* ---- Month row ---- */
+/* ---- Month block ---- */
 .tl-month {
     position: relative;
     display: flex;
     align-items: flex-start;
-    margin-bottom: var(--space-2xl);
+    margin-bottom: 56px;
     opacity: 0;
-    transform: translateY(24px);
-    transition: opacity 0.6s ease, transform 0.6s ease;
+    transition: opacity 0.7s cubic-bezier(0.16, 1, 0.3, 1),
+                transform 0.7s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.tl-month.tl-left {
+    transform: translateX(-30px);
+}
+
+.tl-month.tl-right {
+    transform: translateX(30px);
 }
 
 .tl-month.tl-visible {
     opacity: 1;
-    transform: translateY(0);
+    transform: translateX(0);
 }
 
 /* Dot on the center line */
 .tl-dot {
     position: absolute;
     left: 50%;
-    top: 20px;
-    width: 12px;
-    height: 12px;
-    background: var(--accent-1);
-    border: 3px solid var(--color-white);
+    top: 22px;
+    width: 10px;
+    height: 10px;
+    background: var(--color-white);
+    border: 2px solid var(--accent-1);
     border-radius: 50%;
     transform: translateX(-50%);
-    box-shadow: 0 0 0 2px var(--accent-1);
     z-index: 10;
-    flex-shrink: 0;
+    transition: background 0.3s, transform 0.3s, box-shadow 0.3s;
 }
 
-/* Connector line from dot to month content */
+.tl-month.tl-visible .tl-dot {
+    background: var(--accent-1);
+    box-shadow: 0 0 0 4px rgba(102, 126, 234, 0.15);
+}
+
+/* Connector line from dot to content */
 .tl-connector {
     position: absolute;
-    top: 24px;
-    height: 2px;
+    top: 26px;
+    height: 1px;
     background: var(--color-border);
     z-index: 5;
 }
 
-/* Left-aligned month: content on left side */
+/* Left month: content on left */
 .tl-left .tl-month-content {
-    width: calc(50% - 40px);
+    width: calc(50% - 36px);
     margin-right: auto;
-    padding-right: var(--space-lg);
 }
 
 .tl-left .tl-connector {
-    left: calc(50% - 28px);
-    width: 28px;
+    left: calc(50% - 24px);
+    width: 24px;
 }
 
-/* Right-aligned month: content on right side */
+/* Right month: content on right */
 .tl-right .tl-month-content {
-    width: calc(50% - 40px);
+    width: calc(50% - 36px);
     margin-left: auto;
-    padding-left: var(--space-lg);
 }
 
 .tl-right .tl-connector {
-    left: calc(50% + 6px);
-    width: 28px;
+    left: calc(50% + 5px);
+    width: 24px;
 }
 
-/* ---- Month label ---- */
-.tl-month-label {
-    font-size: 1.125rem;
-    font-weight: 700;
-    color: var(--color-dark);
-    margin-bottom: var(--space-md);
-    letter-spacing: -0.02em;
-}
-
-.tl-left .tl-month-label {
-    text-align: right;
-}
-
-.tl-right .tl-month-label {
-    text-align: left;
-}
-
-/* ---- Book grid ---- */
-.tl-month-grid {
-    display: grid;
-    gap: var(--space-sm);
-}
-
-/* Single book: full width. 2+: two columns */
-.tl-month-grid.tl-grid-multi {
-    grid-template-columns: 1fr 1fr;
-}
-
-/* ---- Book card ---- */
-.tl-book-card {
-    display: block;
+/* ---- Month content card ---- */
+.tl-month-content {
     background: var(--color-white);
-    border: 1px solid var(--color-border);
-    border-radius: var(--radius-md);
-    padding: var(--space-md);
-    text-decoration: none;
-    color: inherit;
-    transition: box-shadow var(--transition-normal), transform var(--transition-normal);
+    border-radius: 16px;
+    border: 1px solid rgba(0, 0, 0, 0.06);
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.03), 0 4px 16px rgba(0, 0, 0, 0.04);
+    overflow: hidden;
+    transition: box-shadow 0.4s ease, transform 0.4s ease;
 }
 
-.tl-book-card:hover {
-    box-shadow: var(--shadow-md);
+.tl-month-content:hover {
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.04), 0 12px 32px rgba(0, 0, 0, 0.08);
     transform: translateY(-2px);
 }
 
+/* Month header inside card */
+.tl-month-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 16px 20px 12px;
+    border-bottom: 1px solid rgba(0, 0, 0, 0.04);
+}
+
+.tl-month-name {
+    font-size: 0.9375rem;
+    font-weight: 700;
+    color: var(--color-dark);
+    letter-spacing: -0.01em;
+}
+
+.tl-month-count {
+    font-size: 0.6875rem;
+    font-weight: 600;
+    color: var(--accent-1);
+    background: rgba(102, 126, 234, 0.08);
+    padding: 3px 10px;
+    border-radius: var(--radius-full);
+    letter-spacing: 0.02em;
+}
+
+/* ---- Book list inside month ---- */
+.tl-book-list {
+    padding: 8px 0;
+}
+
+/* Single book card row */
+.tl-book-card {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    padding: 12px 20px;
+    text-decoration: none;
+    color: inherit;
+    transition: background 0.2s ease;
+    position: relative;
+}
+
+.tl-book-card:hover {
+    background: rgba(0, 0, 0, 0.02);
+}
+
+/* Subtle divider between books */
+.tl-book-card + .tl-book-card {
+    border-top: 1px solid rgba(0, 0, 0, 0.04);
+}
+
+/* Rating accent bar */
+.tl-book-accent {
+    width: 3px;
+    height: 32px;
+    border-radius: 3px;
+    flex-shrink: 0;
+    opacity: 0.8;
+}
+
+.tl-book-accent.tl-rating-5 { background: linear-gradient(to bottom, #fee140, #f5a623); }
+.tl-book-accent.tl-rating-4 { background: linear-gradient(to bottom, #4facfe, #667eea); }
+.tl-book-accent.tl-rating-3 { background: linear-gradient(to bottom, #667eea, #764ba2); }
+.tl-book-accent.tl-rating-2 { background: linear-gradient(to bottom, #f5576c, #fa709a); }
+.tl-book-accent.tl-rating-1 { background: linear-gradient(to bottom, #a0aec0, #cbd5e0); }
+.tl-book-accent.tl-rating-0 { background: var(--color-border); }
+
+/* Book info */
+.tl-book-info {
+    flex: 1;
+    min-width: 0;
+}
+
 .tl-book-title {
-    font-size: 0.875rem;
+    font-size: 0.8125rem;
     font-weight: 600;
     color: var(--color-dark);
     line-height: 1.4;
-    margin-bottom: 4px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.tl-book-meta {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-top: 2px;
 }
 
 .tl-book-author {
-    font-size: 0.75rem;
+    font-size: 0.6875rem;
     color: var(--color-text-muted);
-    line-height: 1.4;
-    margin-bottom: 6px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
 }
 
+/* Rating dots */
 .tl-book-rating {
+    display: flex;
+    align-items: center;
+    gap: 3px;
+    flex-shrink: 0;
+    margin-left: auto;
+}
+
+.tl-rating-dot {
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: var(--color-border);
+    transition: background 0.2s;
+}
+
+.tl-rating-dot.tl-filled {
+    background: var(--accent-1);
+}
+
+/* Arrow indicator */
+.tl-book-arrow {
+    flex-shrink: 0;
+    color: var(--color-border);
+    transition: color 0.2s, transform 0.2s;
     font-size: 0.75rem;
-    color: #d4a017;
-    letter-spacing: 1px;
+}
+
+.tl-book-card:hover .tl-book-arrow {
+    color: var(--accent-1);
+    transform: translateX(2px);
+}
+
+/* ---- Multi-book grid variant (4+ books) ---- */
+.tl-book-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    padding: 8px;
+    gap: 6px;
+}
+
+.tl-book-grid .tl-book-card-compact {
+    display: block;
+    padding: 12px 14px;
+    text-decoration: none;
+    color: inherit;
+    background: rgba(0, 0, 0, 0.015);
+    border-radius: var(--radius-sm);
+    transition: background 0.2s, transform 0.2s;
+    border: none;
+}
+
+.tl-book-grid .tl-book-card-compact:hover {
+    background: rgba(0, 0, 0, 0.04);
+    transform: scale(1.01);
+}
+
+.tl-book-grid .tl-book-card-compact .tl-book-title {
+    font-size: 0.75rem;
+    margin-bottom: 3px;
+}
+
+.tl-book-grid .tl-book-card-compact .tl-book-author {
+    font-size: 0.625rem;
+}
+
+.tl-book-grid .tl-book-card-compact .tl-compact-rating {
+    display: flex;
+    gap: 2px;
+    margin-top: 6px;
+}
+
+.tl-book-grid .tl-book-card-compact .tl-compact-rating .tl-rating-dot {
+    width: 5px;
+    height: 5px;
 }
 
 /* ---- Empty state ---- */
 .tl-empty {
     text-align: center;
-    padding: 80px var(--space-xl);
-    color: var(--color-text-muted);
+    padding: 120px var(--space-xl) 80px;
+    max-width: 400px;
+    margin: 0 auto;
+}
+
+.tl-empty-icon {
+    width: 64px;
+    height: 64px;
+    border-radius: 20px;
+    background: linear-gradient(135deg, rgba(102, 126, 234, 0.1), rgba(118, 75, 162, 0.1));
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 0 auto var(--space-xl);
+    font-size: 1.75rem;
 }
 
 .tl-empty h2 {
-    font-size: 1.5rem;
+    font-size: 1.375rem;
     font-weight: 700;
     color: var(--color-dark);
     margin-bottom: var(--space-sm);
+    letter-spacing: -0.02em;
 }
 
 .tl-empty p {
+    color: var(--color-text-muted);
+    font-size: 0.9375rem;
+    line-height: 1.6;
     margin-bottom: var(--space-xl);
 }
 
-.tl-empty .btn {
-    display: inline-block;
-    padding: var(--space-sm) var(--space-xl);
-    background: var(--gradient-primary);
+.tl-empty-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 12px 28px;
+    background: var(--color-dark);
     color: white;
     border-radius: var(--radius-full);
     text-decoration: none;
     font-weight: 600;
     font-size: 0.875rem;
-    transition: transform var(--transition-fast), box-shadow var(--transition-fast);
+    transition: transform 0.2s, box-shadow 0.2s;
 }
 
-.tl-empty .btn:hover {
+.tl-empty-btn:hover {
     transform: translateY(-1px);
-    box-shadow: var(--shadow-md);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
 }
 
-/* ---- Page header ---- */
-.tl-page-header {
-    text-align: center;
-    padding: var(--space-2xl) 0 var(--space-lg);
-    max-width: 960px;
-    margin: 0 auto;
-}
-
-.tl-page-header h1 {
-    font-size: 2.5rem;
-    font-weight: 800;
-    color: var(--color-dark);
-    letter-spacing: -0.04em;
-    margin-bottom: var(--space-xs);
-}
-
-.tl-page-header p {
-    font-size: 1rem;
-    color: var(--color-text-muted);
-}
-
-/* ---- Responsive: mobile ---- */
+/* ---- Responsive ---- */
 @media (max-width: 768px) {
+    .tl-hero {
+        padding: 40px var(--space-md) 32px;
+    }
+
+    .tl-hero h1 {
+        font-size: 2rem;
+    }
+
+    .tl-stats {
+        gap: 32px;
+    }
+
+    .tl-stat-value {
+        font-size: 1.5rem;
+    }
+
     .reading-timeline::before {
-        left: 20px;
+        left: 16px;
     }
 
     .tl-dot {
-        left: 20px;
+        left: 16px;
     }
 
     .tl-left .tl-month-content,
     .tl-right .tl-month-content {
-        width: calc(100% - 52px);
-        margin-left: 52px;
+        width: calc(100% - 44px);
+        margin-left: 44px;
         margin-right: 0;
-        padding-left: 0;
-        padding-right: 0;
-    }
-
-    .tl-left .tl-month-label,
-    .tl-right .tl-month-label {
-        text-align: left;
     }
 
     .tl-left .tl-connector,
     .tl-right .tl-connector {
-        left: 26px;
-        width: 20px;
+        left: 22px;
+        width: 16px;
     }
 
-    .tl-month-grid.tl-grid-multi {
+    .tl-month.tl-left,
+    .tl-month.tl-right {
+        transform: translateY(20px);
+    }
+
+    .tl-month.tl-visible {
+        transform: translateY(0);
+    }
+
+    .tl-book-grid {
         grid-template-columns: 1fr;
     }
 
-    .tl-page-header h1 {
-        font-size: 1.75rem;
+    .tl-year-pill {
+        padding: 8px 20px;
     }
 
-    .tl-year-header span {
+    .tl-year-pill .tl-year-num {
+        font-size: 1.125rem;
+    }
+}
+
+@media (max-width: 480px) {
+    .tl-hero h1 {
+        font-size: 1.625rem;
+    }
+
+    .tl-stats {
+        flex-direction: column;
+        gap: 16px;
+    }
+
+    .tl-stat {
+        display: flex;
+        align-items: baseline;
+        gap: 8px;
+    }
+
+    .tl-stat-value {
         font-size: 1.25rem;
+    }
+
+    .tl-stat-label {
+        margin-top: 0;
     }
 }
 </style>
 {% endblock %}
 
 {% block content %}
-<div class="tl-page-header">
-    <h1>Reading Timeline</h1>
-    <p>Your reading journey, month by month</p>
+<!-- Scroll progress -->
+<div class="tl-progress" id="tlProgress"></div>
+
+<!-- Hero header -->
+<div class="tl-hero">
+    <h1>Your Reading<br>Timeline</h1>
+    <p class="tl-hero-sub">Every book marks a moment. Scroll through your reading journey.</p>
+
+    {% if read_statuses %}
+    <div class="tl-stats">
+        <div class="tl-stat">
+            <span class="tl-stat-value" data-count="{{ read_statuses|length }}">0</span>
+            <span class="tl-stat-label">Books Read</span>
+        </div>
+        {% regroup read_statuses by read_date|date:"Y" as year_list_stats %}
+        <div class="tl-stat">
+            <span class="tl-stat-value" data-count="{{ year_list_stats|length }}">0</span>
+            <span class="tl-stat-label">Years</span>
+        </div>
+        {% with read_statuses|length as total %}
+        {% regroup read_statuses by read_date|date:"Y-m" as month_list_stats %}
+        <div class="tl-stat">
+            <span class="tl-stat-value" data-count="{{ month_list_stats|length }}">0</span>
+            <span class="tl-stat-label">Months Active</span>
+        </div>
+        {% endwith %}
+    </div>
+    {% endif %}
 </div>
 
 {% if read_statuses %}
@@ -302,12 +590,12 @@
 
 <div class="reading-timeline">
 {% for year in year_list %}
-    <!-- Year header -->
     <div class="tl-year-header">
-        <span>
-            {{ year.grouper }}
-            <small class="tl-year-count">{{ year.list|length }} book{{ year.list|length|pluralize }}</small>
-        </span>
+        <div class="tl-year-pill">
+            <span class="tl-year-num">{{ year.grouper }}</span>
+            <span class="tl-year-divider"></span>
+            <span class="tl-year-count">{{ year.list|length }} book{{ year.list|length|pluralize }}</span>
+        </div>
     </div>
 
     {% regroup year.list by read_date|date:"Y-m" as month_list %}
@@ -316,22 +604,58 @@
         <div class="tl-dot"></div>
         <div class="tl-connector"></div>
         <div class="tl-month-content">
-            <div class="tl-month-label">{{ month.list.0.read_date|date:"F" }}</div>
-            <div class="tl-month-grid{% if month.list|length > 1 %} tl-grid-multi{% endif %}">
+            <div class="tl-month-header">
+                <span class="tl-month-name">{{ month.list.0.read_date|date:"F" }}</span>
+                {% if month.list|length > 1 %}
+                <span class="tl-month-count">{{ month.list|length }} books</span>
+                {% endif %}
+            </div>
+
+            {% if month.list|length >= 4 %}
+            <!-- Grid layout for many books -->
+            <div class="tl-book-grid">
                 {% for status in month.list %}
-                <a href="{% url 'books:detail' status.book.pk %}" class="tl-book-card">
-                    <div class="tl-book-title">{{ status.book.title|truncatechars:60 }}</div>
+                <a href="{% url 'books:detail' status.book.pk %}" class="tl-book-card-compact">
+                    <div class="tl-book-title">{{ status.book.title|truncatechars:45 }}</div>
                     {% if status.book.authors %}
-                    <div class="tl-book-author">{{ status.book.authors|join:", "|truncatechars:40 }}</div>
+                    <div class="tl-book-author">{{ status.book.authors|join:", "|truncatechars:30 }}</div>
                     {% endif %}
                     {% if status.user_rating %}
-                    <div class="tl-book-rating">
-                        {% for i in "12345" %}{% if forloop.counter <= status.user_rating %}★{% else %}☆{% endif %}{% endfor %}
+                    <div class="tl-compact-rating">
+                        {% for i in "12345" %}
+                        <span class="tl-rating-dot{% if forloop.counter <= status.user_rating %} tl-filled{% endif %}"></span>
+                        {% endfor %}
                     </div>
                     {% endif %}
                 </a>
                 {% endfor %}
             </div>
+            {% else %}
+            <!-- List layout for few books -->
+            <div class="tl-book-list">
+                {% for status in month.list %}
+                <a href="{% url 'books:detail' status.book.pk %}" class="tl-book-card">
+                    <span class="tl-book-accent tl-rating-{{ status.user_rating|default:0 }}"></span>
+                    <span class="tl-book-info">
+                        <span class="tl-book-title">{{ status.book.title|truncatechars:60 }}</span>
+                        <span class="tl-book-meta">
+                            {% if status.book.authors %}
+                            <span class="tl-book-author">{{ status.book.authors|join:", "|truncatechars:40 }}</span>
+                            {% endif %}
+                        </span>
+                    </span>
+                    {% if status.user_rating %}
+                    <span class="tl-book-rating">
+                        {% for i in "12345" %}
+                        <span class="tl-rating-dot{% if forloop.counter <= status.user_rating %} tl-filled{% endif %}"></span>
+                        {% endfor %}
+                    </span>
+                    {% endif %}
+                    <span class="tl-book-arrow">&rsaquo;</span>
+                </a>
+                {% endfor %}
+            </div>
+            {% endif %}
         </div>
     </div>
     {% endfor %}
@@ -340,18 +664,24 @@
 
 {% else %}
 <div class="tl-empty">
-    <h2>No books on your timeline yet</h2>
-    <p>Mark books as read with a date to build your reading timeline.</p>
-    <a href="{% url 'books:list' %}" class="btn">Browse books</a>
+    <div class="tl-empty-icon">
+        <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" style="color: var(--accent-1)">
+            <path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"></path>
+            <path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"></path>
+        </svg>
+    </div>
+    <h2>Your timeline is empty</h2>
+    <p>Start by marking books as read. Each one becomes a point on your reading journey.</p>
+    <a href="{% url 'books:list' %}" class="tl-empty-btn">Browse books &rarr;</a>
 </div>
 {% endif %}
 {% endblock %}
 
 {% block extra_js %}
 <script>
-// Scroll-reveal animation for month blocks
 document.addEventListener('DOMContentLoaded', function() {
-    const observer = new IntersectionObserver(function(entries) {
+    // Scroll-reveal for month blocks
+    var observer = new IntersectionObserver(function(entries) {
         entries.forEach(function(entry) {
             if (entry.isIntersecting) {
                 entry.target.classList.add('tl-visible');
@@ -359,13 +689,26 @@ document.addEventListener('DOMContentLoaded', function() {
             }
         });
     }, {
-        threshold: 0.15,
-        rootMargin: '0px 0px -40px 0px'
+        threshold: 0.1,
+        rootMargin: '0px 0px -60px 0px'
     });
 
     document.querySelectorAll('.tl-month').forEach(function(el) {
         observer.observe(el);
     });
+
+    // Scroll progress bar
+    var progressBar = document.getElementById('tlProgress');
+    if (progressBar) {
+        window.addEventListener('scroll', function() {
+            var scrollTop = window.scrollY;
+            var docHeight = document.documentElement.scrollHeight - window.innerHeight;
+            if (docHeight > 0) {
+                progressBar.style.width = (scrollTop / docHeight * 100) + '%';
+            }
+        }, { passive: true });
+    }
+
 });
 </script>
 {% endblock %}
