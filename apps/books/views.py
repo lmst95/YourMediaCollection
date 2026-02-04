@@ -350,7 +350,7 @@ class BookTimelineView(LoginRequiredMixin, ListView):
             user=self.request.user,
             is_read=True,
             read_date__isnull=False
-        ).select_related('book').order_by('read_date')
+        ).select_related('book').order_by('-read_date')
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
