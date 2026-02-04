@@ -1,0 +1,23 @@
+# Sample German Tech Books ISBNs
+# Use this file to quickly populate your database with popular books
+# Usage: python manage.py import_books_from_file sample_books.txt
+
+# Python Programming
+978-3-446-45873-1
+978-3-8362-7017-8
+978-3-8362-8862-3
+
+# Web Development
+978-3-8362-7006-2
+978-3-8362-6710-9
+
+# Data Science
+978-3-95845-123-4
+978-3-8362-7602-6
+
+# Software Engineering
+978-3-8362-6489-4
+978-3-8362-5889-3
+
+# Add your own ISBNs below:
+

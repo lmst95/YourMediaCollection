@@ -1,0 +1,26 @@
+first part of this project:
+Die personliche Bibliothek
+- Bücher, Dokumente, Notizen, ToDos, ... (alles was in Schriftform vorliegen kann)
+- Bücher- und Dokumenten Suche (Filter nach Kategorien, Bewertung, Author, ...)
+- Bücher bewerten (1-5 Sterne)
+- Bücher gibts ein allgemeines Verzeichnis (von allen drauf zugreifbar)
+- Bücher zur eigenen Kollektion hinzufügbar, dann können einer oder mehrer Status gesetzt werden (gelesen, wunschliste, ausgeliehen an, ausgeliehen von, ...)
+
+- Notiz kann man sich zu einem Dokument oder Buch machen
+- ToDos sind mit Text, Status (geplant, in bearbeitung, erledigt) vorgesehen und es kann ein oder mehrere Bücher/Dokumente direkt verlinkt werden
+
+- Kollektion kann man selber erstellen (oder ändern oder löschen) und Bücher oder Dokumente hinzufügen
+
+- Dokumente kann man nur selber hochladen und dann z. B. einer Kollektion hinzufügen
+- Freunde (Nachrichten, Empfehlen, Ausgeliehen an, Ausgeliehen von, Aktivitäten)
+
+Oberflächen
+- Book Store: Übersicht und Suchefunktion aller Bücher
+- Eigene Seite: Übersicht seiner Kollektionen, Übersicht aller Items (mit Filterfunktionen für Bücher, Dokumente etc.)
+- Details Seite: Übersicht eines Items (Buch, Dokument etc.), kann die Status verändern, einem Freund empfehlen etc.
+- Timeline: in einer Horizontalen Ansicht sollen die Aktivitäten in einer gewissen Zeit angezeigt werden, schöne, einfache, übersichtliche Ansicht.
+- Übersicht ToDos: Liste der Todos mit Option diese anzupassen, abhaken, ...
+- Freunde: Übersicht, Suchen/Hinzufügen/Löschen, Aktivitäten, ...
+
+Backend
+- Django, Python
